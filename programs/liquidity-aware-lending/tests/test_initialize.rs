@@ -116,6 +116,7 @@ fn test_initialize_market() {
         collateral_mint,
         debt_mint,
         dlmm_pool,
+        collateral_price_usdc: 1_000_000,
     };
 
     let instruction = anchor_lang::solana_program::instruction::Instruction::new_with_bytes(

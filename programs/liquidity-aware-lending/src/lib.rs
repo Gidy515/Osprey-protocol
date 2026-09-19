@@ -22,4 +22,8 @@ pub mod liquidity_aware_lending {
     pub fn deposit_collateral(ctx: Context<DepositCollateral>, amount: u64) -> Result<()> {
         instructions::deposit_collateral::handle_deposit_collateral(ctx, amount)
     }
+
+    pub fn borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
+        instructions::borrow::handle_borrow(ctx, amount)
+    }
 }

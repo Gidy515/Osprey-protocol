@@ -7,6 +7,7 @@ pub struct InitializeMarketParams {
     pub collateral_mint: Pubkey,
     pub debt_mint: Pubkey,
     pub dlmm_pool: Pubkey,
+    pub collateral_price_usdc: u64,
 }
 
 #[derive(Accounts)]
@@ -44,6 +45,11 @@ pub fn handle_initialize(ctx: Context<Initialize>, params: InitializeMarketParam
     );
 
     require!(
+        params.collateral_price_usdc > 0,
+        LendingError::InvalidMarketConfig
+    );
+
+    require!(
         MIN_LTV_BPS < MAX_LTV_BPS,
         LendingError::InvalidLtvConfiguration
     );
@@ -77,8 +83,8 @@ pub fn handle_initialize(ctx: Context<Initialize>, params: InitializeMarketParam
 
     market.collateral_mint = params.collateral_mint;
     market.debt_mint = params.debt_mint;
+    market.collateral_price_usdc = params.collateral_price_usdc;
     market.dlmm_pool = params.dlmm_pool;
-    market.authority = ctx.accounts.authority.key();
 
     market.max_ltv_bps = MAX_LTV_BPS;
     market.min_ltv_bps = MIN_LTV_BPS;

@@ -8,6 +8,10 @@ pub struct MarketConfig {
     /// Debt mint, currently USDC.
     pub debt_mint: Pubkey,
 
+    /// MVP reference price of one whole collateral token
+    /// denominated in USDC base units.
+    pub collateral_price_usdc: u64,
+
     /// Meteora DLMM pool used for liquidity/risk
     /// assessment and liquidation execution.
     pub dlmm_pool: Pubkey,
@@ -49,6 +53,7 @@ impl MarketConfig {
     pub const LEN: usize = 8 +  // discriminator
         32 + // collateral_mint
         32 + // debt_mint
+        8 +  // collateral_price_usdc
         32 + // dlmm_pool
         32 + // authority
         2 +  // max_ltv_bps
