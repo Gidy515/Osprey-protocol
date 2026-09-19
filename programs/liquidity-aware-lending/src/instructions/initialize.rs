@@ -1,10 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::{
-    constants::*,
-    error::LendingError,
-    state::MarketConfig,
-};
+use crate::{constants::*, error::LendingError, state::MarketConfig};
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct InitializeMarketParams {
@@ -31,10 +27,7 @@ pub struct Initialize<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handle_initialize(
-    ctx: Context<Initialize>,
-    params: InitializeMarketParams,
-) -> Result<()> {
+pub fn handle_initialize(ctx: Context<Initialize>, params: InitializeMarketParams) -> Result<()> {
     require!(
         params.collateral_mint != Pubkey::default(),
         LendingError::InvalidMarketConfig

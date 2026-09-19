@@ -46,8 +46,7 @@ pub struct MarketConfig {
 }
 
 impl MarketConfig {
-    pub const LEN: usize =
-        8 +  // discriminator
+    pub const LEN: usize = 8 +  // discriminator
         32 + // collateral_mint
         32 + // debt_mint
         32 + // dlmm_pool
@@ -60,7 +59,7 @@ impl MarketConfig {
         8 +  // reference_liquidation_size_usdc
         2 +  // issuer_risk_ceiling_bps
         2 +  // transfer_fee_bps
-        1;   // bump
+        1; // bump
 }
 
 #[account]
@@ -82,11 +81,10 @@ pub struct Position {
 }
 
 impl Position {
-    pub const LEN: usize =
-        8 +  // discriminator
+    pub const LEN: usize = 8 +  // discriminator
         32 + // owner
         32 + // market
         8 +  // collateral_amount
         8 +  // debt_amount
-        1;   // bump
+        1; // bump
 }

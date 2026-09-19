@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 
 pub const MARKET_SEED: &[u8] = b"market";
 pub const POSITION_SEED: &[u8] = b"position";
+pub const VAULT_SEED: &[u8] = b"vault";
 
 pub const MAX_LTV_BPS: u16 = 6_500;
 pub const MIN_LTV_BPS: u16 = 3_500;

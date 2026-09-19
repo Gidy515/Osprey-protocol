@@ -7,7 +7,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-liquidity_aware_lending = "6HxjRZGNXgKE21WRsd5RbwXJGmNCcQrpEJ1uzBnBJ8M6"
+liquidity_aware_lending = "jAUJs14M4WiAvrgRgZiKQ2nunkWMrqqM7sGZotmWwss"
 
 [provider]
 cluster = "localnet"
