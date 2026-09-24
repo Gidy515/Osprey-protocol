@@ -85,6 +85,7 @@ pub fn handle_initialize(ctx: Context<Initialize>, params: InitializeMarketParam
     market.debt_mint = params.debt_mint;
     market.collateral_price_usdc = params.collateral_price_usdc;
     market.dlmm_pool = params.dlmm_pool;
+    market.authority = ctx.accounts.authority.key();
 
     market.max_ltv_bps = MAX_LTV_BPS;
     market.min_ltv_bps = MIN_LTV_BPS;

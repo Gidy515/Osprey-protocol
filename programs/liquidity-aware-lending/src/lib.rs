@@ -2,6 +2,7 @@ pub mod constants;
 pub mod error;
 pub mod instructions;
 pub mod integrations;
+pub mod risk_engine;
 pub mod state;
 use anchor_lang::prelude::*;
 
@@ -17,6 +18,18 @@ pub mod liquidity_aware_lending {
 
     pub fn initialize(ctx: Context<Initialize>, params: InitializeMarketParams) -> Result<()> {
         instructions::initialize::handle_initialize(ctx, params)
+    }
+
+    pub fn update_liquidity_risk(
+        ctx: Context<UpdateLiquidityRisk>,
+        quote_collateral_in: u64,
+        quote_usdc_out: u64,
+    ) -> Result<()> {
+        instructions::update_liquidity_risk::handle_update_liquidity_risk(
+            ctx,
+            quote_collateral_in,
+            quote_usdc_out,
+        )
     }
 
     pub fn deposit_collateral(ctx: Context<DepositCollateral>, amount: u64) -> Result<()> {

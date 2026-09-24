@@ -2,8 +2,9 @@ mod common;
 
 use anchor_lang::{prelude::Pubkey, InstructionData, ToAccountMetas};
 use common::{
-    associated_token_address, create_token_2022_ata, create_token_2022_mint, initialize_market,
-    mint_token_2022, send_transaction, setup_lending_program, token_2022_account_amount,
+    associated_token_address, create_token_2022_ata, create_token_2022_mint,
+    initialize_liquidity_risk, initialize_market, mint_token_2022, send_transaction,
+    setup_lending_program, token_2022_account_amount,
 };
 use liquidity_aware_lending::constants::VAULT_SEED;
 use liquidity_aware_lending::instruction::{
@@ -19,6 +20,7 @@ struct BorrowTestContext {
     payer: Keypair,
     program_id: Pubkey,
     market: Pubkey,
+    risk_snapshot: Pubkey,
     position: Pubkey,
     collateral_mint: Keypair,
     debt_mint: Keypair,
@@ -47,6 +49,15 @@ fn setup_borrow_test(debt_liquidity: u64) -> BorrowTestContext {
         collateral_mint.pubkey(),
         debt_mint.pubkey(),
         Keypair::new().pubkey(),
+    );
+
+    let risk_snapshot = initialize_liquidity_risk(
+        &mut svm,
+        program_id,
+        &payer,
+        market,
+        5_000_000_000,
+        5_000_000_000,
     );
 
     let user_collateral_account =
@@ -136,6 +147,7 @@ fn setup_borrow_test(debt_liquidity: u64) -> BorrowTestContext {
         payer,
         program_id,
         market,
+        risk_snapshot,
         position,
         collateral_mint,
         debt_mint,
@@ -154,8 +166,11 @@ fn borrow(ctx: &mut BorrowTestContext, amount: u64) -> litesvm::types::Transacti
         user: ctx.payer.pubkey(),
         market: ctx.market,
         position: ctx.position,
+        risk_snapshot: ctx.risk_snapshot,
+
         collateral_mint: ctx.collateral_mint.pubkey(),
         debt_mint: ctx.debt_mint.pubkey(),
+
         user_debt_account: ctx.user_debt_account,
         vault_authority: ctx.vault_authority,
         debt_vault: ctx.debt_vault,
@@ -264,10 +279,10 @@ fn test_borrow_rejects_wrong_debt_mint() {
         user: ctx.payer.pubkey(),
         market: ctx.market,
         position: ctx.position,
+        risk_snapshot: ctx.risk_snapshot,
         collateral_mint: ctx.collateral_mint.pubkey(),
 
-        // Deliberately use the collateral mint instead of
-        // the market's configured debt mint.
+        // Deliberately wrong: market expects ctx.debt_mint.
         debt_mint: ctx.collateral_mint.pubkey(),
 
         user_debt_account: ctx.user_debt_account,

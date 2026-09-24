@@ -6,7 +6,8 @@ use anchor_spl::token_interface::{
 use crate::{
     constants::*,
     error::LendingError,
-    state::{MarketConfig, Position},
+    risk_engine::assess_risk,
+    state::{LiquidityRiskSnapshot, MarketConfig, Position},
 };
 
 #[derive(Accounts)]
@@ -32,6 +33,17 @@ pub struct WithdrawCollateral<'info> {
         constraint = position.market == market.key() @ LendingError::MarketMismatch,
     )]
     pub position: Box<Account<'info, Position>>,
+
+    #[account(
+        seeds = [
+            RISK_SNAPSHOT_SEED,
+            market.key().as_ref()
+        ],
+        bump = risk_snapshot.bump,
+        constraint = risk_snapshot.market == market.key()
+            @ LendingError::MarketMismatch,
+    )]
+    pub risk_snapshot: Box<Account<'info, LiquidityRiskSnapshot>>,
 
     #[account(
         address = market.collateral_mint @ LendingError::MarketMismatch
@@ -89,14 +101,17 @@ pub fn handle_withdraw_collateral(ctx: Context<WithdrawCollateral>, amount: u64)
         .ok_or(LendingError::MathOverflow)?;
 
     if position.debt_amount > 0 {
-        let max_debt = remaining_collateral_value_usdc
-            .checked_mul(market.max_ltv_bps as u64)
-            .ok_or(LendingError::MathOverflow)?
-            .checked_div(10_000)
-            .ok_or(LendingError::MathOverflow)?;
+        let clock = Clock::get()?;
+
+        let risk = assess_risk(
+            market,
+            &ctx.accounts.risk_snapshot,
+            remaining_collateral_value_usdc,
+            clock.slot,
+        )?;
 
         require!(
-            position.debt_amount <= max_debt,
+            position.debt_amount <= risk.max_debt,
             LendingError::WithdrawalViolatesLtv
         );
     }

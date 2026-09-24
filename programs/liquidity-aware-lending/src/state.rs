@@ -93,3 +93,30 @@ impl Position {
         8 +  // debt_amount
         1; // bump
 }
+
+#[account]
+pub struct LiquidityRiskSnapshot {
+    /// Market this snapshot belongs to.
+    pub market: Pubkey,
+
+    /// Collateral amount used for the executable-liquidity quote.
+    pub quote_collateral_in: u64,
+
+    /// Executable USDC output observed from Meteora.
+    pub quote_usdc_out: u64,
+
+    /// Slot at which the observation was published.
+    pub observed_slot: u64,
+
+    /// PDA bump.
+    pub bump: u8,
+}
+
+impl LiquidityRiskSnapshot {
+    pub const LEN: usize = 8 +  // discriminator
+        32 + // market
+        8 +  // quote_collateral_in
+        8 +  // quote_usdc_out
+        8 +  // observed_slot
+        1; // bump
+}

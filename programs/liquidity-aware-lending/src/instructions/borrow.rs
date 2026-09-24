@@ -6,23 +6,21 @@ use anchor_spl::token_interface::{
 use crate::{
     constants::*,
     error::LendingError,
-    state::{MarketConfig, Position},
+    risk_engine::assess_risk,
+    state::{LiquidityRiskSnapshot, MarketConfig, Position},
 };
 
 #[derive(Accounts)]
 pub struct Borrow<'info> {
-    /// User borrowing USDC against their collateral.
     #[account(mut)]
     pub user: Signer<'info>,
 
-    /// Existing market configuration.
     #[account(
         seeds = [MARKET_SEED, market.collateral_mint.as_ref()],
         bump = market.bump,
     )]
     pub market: Box<Account<'info, MarketConfig>>,
 
-    /// User's borrowing position.
     #[account(
         mut,
         seeds = [
@@ -36,19 +34,27 @@ pub struct Borrow<'info> {
     )]
     pub position: Box<Account<'info, Position>>,
 
-    /// Market collateral mint.
+    #[account(
+        seeds = [
+            RISK_SNAPSHOT_SEED,
+            market.key().as_ref()
+        ],
+        bump = risk_snapshot.bump,
+        constraint = risk_snapshot.market == market.key()
+            @ LendingError::MarketMismatch,
+    )]
+    pub risk_snapshot: Box<Account<'info, LiquidityRiskSnapshot>>,
+
     #[account(
         address = market.collateral_mint @ LendingError::MarketMismatch
     )]
     pub collateral_mint: Box<InterfaceAccount<'info, Mint>>,
 
-    /// Market debt mint.
     #[account(
         address = market.debt_mint @ LendingError::DebtMintMismatch
     )]
     pub debt_mint: Box<InterfaceAccount<'info, Mint>>,
 
-    /// User's USDC account.
     #[account(
         mut,
         token::mint = debt_mint,
@@ -57,7 +63,6 @@ pub struct Borrow<'info> {
     )]
     pub user_debt_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
-    /// PDA authority for the market's token vaults.
     /// CHECK: PDA is constrained by deterministic seeds.
     #[account(
         seeds = [VAULT_SEED, market.key().as_ref()],
@@ -65,7 +70,6 @@ pub struct Borrow<'info> {
     )]
     pub vault_authority: UncheckedAccount<'info>,
 
-    /// Protocol USDC liquidity vault.
     #[account(
         mut,
         token::mint = debt_mint,
@@ -74,7 +78,6 @@ pub struct Borrow<'info> {
     )]
     pub debt_vault: Box<InterfaceAccount<'info, TokenAccount>>,
 
-    /// Token / Token-2022 program.
     pub token_program: Interface<'info, TokenInterface>,
 }
 
@@ -83,14 +86,6 @@ pub fn handle_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
 
     let position = &ctx.accounts.position;
     let market = &ctx.accounts.market;
-
-    // ---------------------------------------------------------
-    // 1. Convert collateral amount into USDC value.
-    //
-    // collateral_amount uses the collateral mint's decimals.
-    // collateral_price_usdc represents the USDC base-unit
-    // value of one whole collateral token.
-    // ---------------------------------------------------------
 
     let collateral_decimals = ctx.accounts.collateral_mint.decimals;
 
@@ -107,30 +102,42 @@ pub fn handle_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
     );
 
     // ---------------------------------------------------------
-    // 2. Calculate the maximum debt permitted by max LTV.
+    // LIQUIDITY-AWARE RISK ASSESSMENT
+    //
+    // We no longer use market.max_ltv_bps directly.
+    //
+    // Meteora executable liquidity
+    //          ↓
+    // execution-derived LTV
+    //          ↓
+    // issuer-risk ceiling
+    //          ↓
+    // effective LTV
+    //          ↓
+    // max debt
     // ---------------------------------------------------------
 
-    let max_debt = collateral_value_usdc
-        .checked_mul(market.max_ltv_bps as u64)
-        .ok_or(LendingError::MathOverflow)?
-        .checked_div(10_000)
-        .ok_or(LendingError::MathOverflow)?;
+    let clock = Clock::get()?;
 
-    // ---------------------------------------------------------
-    // 3. Add the requested borrow to existing debt.
-    // ---------------------------------------------------------
+    let risk = assess_risk(
+        market,
+        &ctx.accounts.risk_snapshot,
+        collateral_value_usdc,
+        clock.slot,
+    )?;
 
     let new_debt = position
         .debt_amount
         .checked_add(amount)
         .ok_or(LendingError::MathOverflow)?;
 
-    require!(new_debt <= max_debt, LendingError::BorrowExceedsLtv);
+    require!(new_debt <= risk.max_debt, LendingError::BorrowExceedsLtv);
 
-    // ---------------------------------------------------------
-    // 4. Transfer USDC from the protocol liquidity vault
-    //    to the borrower.
-    // ---------------------------------------------------------
+    // Ensure the protocol actually has enough USDC to lend.
+    require!(
+        ctx.accounts.debt_vault.amount >= amount,
+        LendingError::InsufficientDebtLiquidity
+    );
 
     let decimals = ctx.accounts.debt_mint.decimals;
 
@@ -152,10 +159,6 @@ pub fn handle_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
         CpiContext::new(ctx.accounts.token_program.key(), cpi_accounts).with_signer(&signer);
 
     transfer_checked(cpi_ctx, amount, decimals)?;
-
-    // ---------------------------------------------------------
-    // 5. Record the new debt only after the transfer succeeds.
-    // ---------------------------------------------------------
 
     let position = &mut ctx.accounts.position;
 

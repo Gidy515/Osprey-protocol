@@ -2,8 +2,9 @@ mod common;
 
 use anchor_lang::{prelude::Pubkey, AccountDeserialize, InstructionData, ToAccountMetas};
 use common::{
-    associated_token_address, create_token_2022_ata, create_token_2022_mint, initialize_market,
-    mint_token_2022, send_transaction, setup_lending_program, token_2022_account_amount,
+    associated_token_address, create_token_2022_ata, create_token_2022_mint,
+    initialize_liquidity_risk, initialize_market, mint_token_2022, send_transaction,
+    setup_lending_program, token_2022_account_amount,
 };
 use liquidity_aware_lending::constants::{POSITION_SEED, VAULT_SEED};
 use liquidity_aware_lending::instruction::{
@@ -46,6 +47,15 @@ fn setup_repay_test() -> RepayTestContext {
         collateral_mint.pubkey(),
         debt_mint.pubkey(),
         Keypair::new().pubkey(),
+    );
+
+    let risk_snapshot = initialize_liquidity_risk(
+        &mut svm,
+        program_id,
+        &payer,
+        market,
+        5_000_000_000,
+        5_000_000_000,
     );
 
     let user_collateral_account =
@@ -137,6 +147,7 @@ fn setup_repay_test() -> RepayTestContext {
         user: payer.pubkey(),
         market,
         position,
+        risk_snapshot,
         collateral_mint: collateral_mint.pubkey(),
         debt_mint: debt_mint.pubkey(),
         user_debt_account,

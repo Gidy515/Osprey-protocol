@@ -18,3 +18,9 @@ pub const ISSUER_RISK_CEILING_BPS: u16 = 6_000;
 pub const REFERENCE_LIQUIDATION_SIZE_USDC: u64 = 5_000_000_000;
 
 pub const PRESTOCKS_TRANSFER_FEE_BPS: u16 = 50;
+
+pub const RISK_SNAPSHOT_SEED: &[u8] = b"risk-snapshot";
+
+/// Roughly ~2 minutes at ~400ms/slot.
+/// Hackathon MVP freshness bound.
+pub const MAX_RISK_SNAPSHOT_AGE_SLOTS: u64 = 300;

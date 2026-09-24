@@ -282,3 +282,53 @@ pub fn setup_lending_program() -> (LiteSVM, Keypair) {
 pub fn associated_token_address(owner: &Pubkey, mint: &Pubkey) -> Pubkey {
     get_associated_token_address_with_program_id(owner, mint, &TOKEN_2022_PROGRAM_ID)
 }
+
+pub fn initialize_liquidity_risk(
+    svm: &mut litesvm::LiteSVM,
+    program_id: anchor_lang::prelude::Pubkey,
+    payer: &solana_keypair::Keypair,
+    market: anchor_lang::prelude::Pubkey,
+    quote_collateral_in: u64,
+    quote_usdc_out: u64,
+) -> anchor_lang::prelude::Pubkey {
+    use anchor_lang::{InstructionData, ToAccountMetas};
+    use solana_signer::Signer;
+
+    use liquidity_aware_lending::{
+        accounts::UpdateLiquidityRisk, constants::RISK_SNAPSHOT_SEED,
+        instruction::UpdateLiquidityRisk as UpdateLiquidityRiskInstruction,
+    };
+
+    let (risk_snapshot, _) = anchor_lang::prelude::Pubkey::find_program_address(
+        &[RISK_SNAPSHOT_SEED, market.as_ref()],
+        &program_id,
+    );
+
+    let accounts = UpdateLiquidityRisk {
+        authority: payer.pubkey(),
+        market,
+        risk_snapshot,
+        system_program: anchor_lang::solana_program::system_program::ID,
+    };
+
+    let data = UpdateLiquidityRiskInstruction {
+        quote_collateral_in,
+        quote_usdc_out,
+    };
+
+    let instruction = anchor_lang::solana_program::instruction::Instruction::new_with_bytes(
+        program_id,
+        &data.data(),
+        accounts.to_account_metas(None),
+    );
+
+    let result = send_transaction(svm, instruction, payer, &[]);
+
+    assert!(
+        result.is_ok(),
+        "risk snapshot initialization failed: {:?}",
+        result.err()
+    );
+
+    risk_snapshot
+}

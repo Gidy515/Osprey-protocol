@@ -5,13 +5,12 @@ extern crate alloc;
 use alloc::vec;
 
 use solana_account_info::AccountInfo;
-use solana_program::program::invoke_signed;
 use solana_program::instruction::{AccountMeta, Instruction};
+use solana_program::program::invoke_signed;
 use solana_program_entrypoint::{entrypoint, ProgramResult};
 use solana_pubkey::Pubkey;
 
-const SWAP2_DISCRIMINATOR: [u8; 8] =
-    [65, 75, 63, 76, 235, 91, 91, 136];
+const SWAP2_DISCRIMINATOR: [u8; 8] = [65, 75, 63, 76, 235, 91, 91, 136];
 
 // -----------------------------------------------------------------------------
 // Swap2 fixed-account positions.
@@ -78,9 +77,7 @@ pub fn process_instruction(
     // -------------------------------------------------------------------------
 
     if instruction_data.len() < 24 {
-        return Err(
-            solana_program_error::ProgramError::InvalidInstructionData
-        );
+        return Err(solana_program_error::ProgramError::InvalidInstructionData);
     }
 
     // -------------------------------------------------------------------------
@@ -88,9 +85,7 @@ pub fn process_instruction(
     // -------------------------------------------------------------------------
 
     if instruction_data[..8] != SWAP2_DISCRIMINATOR {
-        return Err(
-            solana_program_error::ProgramError::InvalidInstructionData
-        );
+        return Err(solana_program_error::ProgramError::InvalidInstructionData);
     }
 
     // -------------------------------------------------------------------------
@@ -103,9 +98,7 @@ pub fn process_instruction(
     // -------------------------------------------------------------------------
 
     if accounts.len() < 17 {
-        return Err(
-            solana_program_error::ProgramError::NotEnoughAccountKeys
-        );
+        return Err(solana_program_error::ProgramError::NotEnoughAccountKeys);
     }
 
     // -------------------------------------------------------------------------
@@ -115,9 +108,7 @@ pub fn process_instruction(
     let amount_in = u64::from_le_bytes(
         instruction_data[8..16]
             .try_into()
-            .map_err(|_| {
-                solana_program_error::ProgramError::InvalidInstructionData
-            })?,
+            .map_err(|_| solana_program_error::ProgramError::InvalidInstructionData)?,
     );
 
     // -------------------------------------------------------------------------
@@ -127,15 +118,11 @@ pub fn process_instruction(
     let min_amount_out = u64::from_le_bytes(
         instruction_data[16..24]
             .try_into()
-            .map_err(|_| {
-                solana_program_error::ProgramError::InvalidInstructionData
-            })?,
+            .map_err(|_| solana_program_error::ProgramError::InvalidInstructionData)?,
     );
 
     if amount_in == 0 {
-        return Err(
-            solana_program_error::ProgramError::InvalidArgument
-        );
+        return Err(solana_program_error::ProgramError::InvalidArgument);
     }
 
     // -------------------------------------------------------------------------
@@ -154,14 +141,10 @@ pub fn process_instruction(
 
     let amount_out = amount_in
         .checked_div(COLLATERAL_TO_USDC_SCALE)
-        .ok_or(
-            solana_program_error::ProgramError::ArithmeticOverflow
-        )?;
+        .ok_or(solana_program_error::ProgramError::ArithmeticOverflow)?;
 
     if amount_out == 0 || amount_out < min_amount_out {
-        return Err(
-            solana_program_error::ProgramError::InsufficientFunds
-        );
+        return Err(solana_program_error::ProgramError::InsufficientFunds);
     }
 
     // -------------------------------------------------------------------------
@@ -181,8 +164,7 @@ pub fn process_instruction(
     // Meteora accounts. Our test will therefore provide the PDA as account 16.
     // -------------------------------------------------------------------------
 
-    let reserve_authority_account =
-        &accounts[RESERVE_AUTHORITY_INDEX];
+    let reserve_authority_account = &accounts[RESERVE_AUTHORITY_INDEX];
 
     // -------------------------------------------------------------------------
     // 9. Derive the reserve authority PDA ourselves.
@@ -192,15 +174,10 @@ pub fn process_instruction(
     // -------------------------------------------------------------------------
 
     let (reserve_authority, reserve_bump) =
-        Pubkey::find_program_address(
-            &[RESERVE_AUTHORITY_SEED],
-            program_id,
-        );
+        Pubkey::find_program_address(&[RESERVE_AUTHORITY_SEED], program_id);
 
     if reserve_authority_account.key != &reserve_authority {
-        return Err(
-            solana_program_error::ProgramError::InvalidArgument
-        );
+        return Err(solana_program_error::ProgramError::InvalidArgument);
     }
 
     // -------------------------------------------------------------------------
@@ -248,10 +225,7 @@ pub fn process_instruction(
 
     let reserve_bump_seed = [reserve_bump];
 
-    let signer_seeds: &[&[u8]] = &[
-        RESERVE_AUTHORITY_SEED,
-        &reserve_bump_seed,
-    ];
+    let signer_seeds: &[&[u8]] = &[RESERVE_AUTHORITY_SEED, &reserve_bump_seed];
 
     // -------------------------------------------------------------------------
     // 12. Execute the nested Token-2022 transfer CPI.

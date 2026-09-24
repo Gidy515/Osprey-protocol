@@ -8,7 +8,8 @@ use crate::{
         event_authority, invoke_swap2, RemainingAccountsInfo, Swap2Accounts,
         METEORA_DLMM_PROGRAM_ID,
     },
-    state::{MarketConfig, Position},
+    risk_engine::assess_risk,
+    state::{LiquidityRiskSnapshot, MarketConfig, Position},
 };
 
 #[derive(Accounts)]
@@ -37,6 +38,17 @@ pub struct Liquidate<'info> {
         constraint = position.market == market.key() @ LendingError::MarketMismatch,
     )]
     pub position: Box<Account<'info, Position>>,
+
+    #[account(
+        seeds = [
+            RISK_SNAPSHOT_SEED,
+            market.key().as_ref()
+        ],
+        bump = risk_snapshot.bump,
+        constraint = risk_snapshot.market == market.key()
+            @ LendingError::MarketMismatch,
+    )]
+    pub risk_snapshot: Box<Account<'info, LiquidityRiskSnapshot>>,
 
     /// Collateral mint configured for this market.
     #[account(
@@ -161,15 +173,9 @@ pub fn handle_liquidate<'info>(
     collateral_to_sell: u64,
     min_amount_out: u64,
 ) -> Result<()> {
-    require!(
-        collateral_to_sell > 0,
-        LendingError::InvalidAmount
-    );
+    require!(collateral_to_sell > 0, LendingError::InvalidAmount);
 
-    require!(
-        min_amount_out > 0,
-        LendingError::InvalidAmount
-    );
+    require!(min_amount_out > 0, LendingError::InvalidAmount);
 
     // -------------------------------------------------------------------------
     // 1. Validate that the position is currently liquidatable.
@@ -179,6 +185,21 @@ pub fn handle_liquidate<'info>(
         &ctx.accounts.market,
         &ctx.accounts.position,
         ctx.accounts.collateral_mint.decimals,
+    )?;
+
+    let collateral_value = collateral_value_usdc(
+        ctx.accounts.position.collateral_amount,
+        ctx.accounts.market.collateral_price_usdc,
+        ctx.accounts.collateral_mint.decimals,
+    )?;
+
+    let clock = Clock::get()?;
+
+    let risk = assess_risk(
+        &ctx.accounts.market,
+        &ctx.accounts.risk_snapshot,
+        collateral_value,
+        clock.slot,
     )?;
 
     // -------------------------------------------------------------------------
@@ -203,9 +224,7 @@ pub fn handle_liquidate<'info>(
 
     let remaining_accounts = ctx.remaining_accounts;
 
-    let remaining_accounts_info = RemainingAccountsInfo {
-        slices: vec![],
-    };
+    let remaining_accounts_info = RemainingAccountsInfo { slices: vec![] };
 
     let remaining_account_metas = remaining_accounts
         .iter()
@@ -257,11 +276,7 @@ pub fn handle_liquidate<'info>(
     let vault_bump = ctx.bumps.vault_authority;
     let market_key = ctx.accounts.market.key();
 
-    let vault_signer_seeds: &[&[u8]] = &[
-        VAULT_SEED,
-        market_key.as_ref(),
-        &[vault_bump],
-    ];
+    let vault_signer_seeds: &[&[u8]] = &[VAULT_SEED, market_key.as_ref(), &[vault_bump]];
 
     // -------------------------------------------------------------------------
     // 6. Construct the complete account-info list expected by Meteora.
@@ -269,39 +284,27 @@ pub fn handle_liquidate<'info>(
 
     let mut account_infos = vec![
         ctx.accounts.lb_pair.to_account_info(),
-
         // Bitmap-extension sentinel.
         ctx.accounts.meteora_program.to_account_info(),
-
         ctx.accounts.reserve_x.to_account_info(),
         ctx.accounts.reserve_y.to_account_info(),
-
         ctx.accounts.vault_collateral_account.to_account_info(),
         ctx.accounts.debt_vault.to_account_info(),
-
         ctx.accounts.token_x_mint.to_account_info(),
         ctx.accounts.token_y_mint.to_account_info(),
-
         ctx.accounts.oracle.to_account_info(),
-
         // Host-fee sentinel.
         ctx.accounts.meteora_program.to_account_info(),
-
         ctx.accounts.vault_authority.to_account_info(),
-
         ctx.accounts.token_2022_program.to_account_info(),
         ctx.accounts.token_program.to_account_info(),
-
         ctx.accounts.memo_program.to_account_info(),
         ctx.accounts.meteora_event_authority.to_account_info(),
-
         // Meteora program.
         ctx.accounts.meteora_program.to_account_info(),
     ];
 
-    account_infos.extend(
-        remaining_accounts.iter().cloned()
-    );
+    account_infos.extend(remaining_accounts.iter().cloned());
 
     // -------------------------------------------------------------------------
     // 7. Execute the actual Meteora swap.
@@ -341,10 +344,7 @@ pub fn handle_liquidate<'info>(
         .checked_sub(debt_vault_before)
         .ok_or(LendingError::MathOverflow)?;
 
-    require!(
-        usdc_recovered > 0,
-        LendingError::InsufficientDebtLiquidity
-    );
+    require!(usdc_recovered > 0, LendingError::InsufficientDebtLiquidity);
 
     // -------------------------------------------------------------------------
     // 10. Validate that the actual execution was sufficient to restore the
@@ -364,7 +364,7 @@ pub fn handle_liquidate<'info>(
         usdc_recovered,
         ctx.accounts.market.collateral_price_usdc,
         ctx.accounts.collateral_mint.decimals,
-        ctx.accounts.market.max_ltv_bps,
+        risk.effective_ltv_bps,
         ctx.accounts.market.max_liquidation_bps,
     )?;
 
@@ -571,7 +571,9 @@ pub fn required_debt_repayment(
 /// `quote_collateral_in` and `quote_usdc_out` represent an actual
 /// execution quote from the liquidation venue:
 ///
-///     quote_collateral_in -> quote_usdc_out
+/// ```text
+/// quote_collateral_in -> quote_usdc_out
+/// ```
 ///
 /// The function derives an effective execution ratio from that quote
 /// and uses it to estimate USDC recovery for candidate liquidation
@@ -581,6 +583,7 @@ pub fn required_debt_repayment(
 /// This is NOT the Meteora quote itself. The production liquidation
 /// instruction must obtain a fresh Meteora quote/execution constraint
 /// and pass the resulting amounts into the liquidation logic.
+
 pub fn minimum_collateral_to_sell(
     collateral_amount: u64,
     debt_amount: u64,

@@ -3,6 +3,7 @@ pub mod deposit_collateral;
 pub mod initialize;
 pub mod liquidate;
 pub mod repay;
+pub mod update_liquidity_risk;
 pub mod withdraw_collateral;
 
 pub use borrow::*;
@@ -10,4 +11,5 @@ pub use deposit_collateral::*;
 pub use initialize::*;
 pub use liquidate::*;
 pub use repay::*;
+pub use update_liquidity_risk::*;
 pub use withdraw_collateral::*;

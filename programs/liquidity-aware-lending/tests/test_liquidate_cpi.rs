@@ -1,10 +1,10 @@
+use anchor_lang::AccountDeserialize;
 use anchor_lang::{InstructionData, ToAccountMetas};
+use liquidity_aware_lending::state::Position;
 use litesvm::types::TransactionResult;
 use solana_account::Account;
 use solana_keypair::Keypair;
 use solana_signer::Signer;
-use liquidity_aware_lending::state::Position;
-use anchor_lang::AccountDeserialize;
 
 use liquidity_aware_lending::{
     accounts::{Borrow, Liquidate},
@@ -16,8 +16,9 @@ use liquidity_aware_lending::{
 mod common;
 
 use common::{
-    associated_token_address, create_token_2022_ata, create_token_2022_mint, initialize_market,
-    mint_token_2022, send_transaction, setup_lending_program,
+    associated_token_address, create_token_2022_ata, create_token_2022_mint,
+    initialize_liquidity_risk, initialize_market, mint_token_2022, send_transaction,
+    setup_lending_program,
 };
 
 const MOCK_RESERVE_AUTHORITY_SEED: &[u8] = b"mock-reserve-authority";
@@ -49,39 +50,38 @@ fn test_liquidate_reaches_meteora_cpi() {
     let reserve_x = anchor_lang::prelude::Pubkey::new_unique();
     let oracle = anchor_lang::prelude::Pubkey::new_unique();
 
-// -------------------------------------------------------------------------
-// The mock reserve authority is a PDA owned by mock-meteora.
-//
-// The mock Meteora program will use this PDA as the authority of its
-// Token-2022 USDC reserve and sign the nested Token-2022 transfer CPI.
-// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // The mock reserve authority is a PDA owned by mock-meteora.
+    //
+    // The mock Meteora program will use this PDA as the authority of its
+    // Token-2022 USDC reserve and sign the nested Token-2022 transfer CPI.
+    // -------------------------------------------------------------------------
 
-let (mock_reserve_authority, _) =
-    anchor_lang::prelude::Pubkey::find_program_address(
+    let (mock_reserve_authority, _) = anchor_lang::prelude::Pubkey::find_program_address(
         &[MOCK_RESERVE_AUTHORITY_SEED],
         &METEORA_DLMM_PROGRAM_ID,
     );
 
-// -------------------------------------------------------------------------
-// Fake Meteora accounts.
-//
-// These don't need to be real DLMM accounts because the mock only needs
-// them to exist for the CPI account validation.
-// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Fake Meteora accounts.
+    //
+    // These don't need to be real DLMM accounts because the mock only needs
+    // them to exist for the CPI account validation.
+    // -------------------------------------------------------------------------
 
-for address in [lb_pair, reserve_x, oracle] {
-    svm.set_account(
-        address.into(),
-        Account {
-            lamports: 1_000_000,
-            data: vec![],
-            owner: METEORA_DLMM_PROGRAM_ID.into(),
-            executable: false,
-            rent_epoch: 0,
-        },
-    )
-    .expect("failed to create fake Meteora account");
-}
+    for address in [lb_pair, reserve_x, oracle] {
+        svm.set_account(
+            address.into(),
+            Account {
+                lamports: 1_000_000,
+                data: vec![],
+                owner: METEORA_DLMM_PROGRAM_ID.into(),
+                executable: false,
+                rent_epoch: 0,
+            },
+        )
+        .expect("failed to create fake Meteora account");
+    }
 
     // -------------------------------------------------------------------------
     // reserve_y is different.
@@ -94,8 +94,7 @@ for address in [lb_pair, reserve_x, oracle] {
     // Its authority is the mock reserve-authority PDA.
     // -------------------------------------------------------------------------
 
-    let reserve_y =
-        associated_token_address(&mock_reserve_authority, &debt_mint.pubkey());
+    let reserve_y = associated_token_address(&mock_reserve_authority, &debt_mint.pubkey());
 
     create_token_2022_ata(
         &mut svm,
@@ -106,15 +105,15 @@ for address in [lb_pair, reserve_x, oracle] {
 
     // Fund the mock reserve with enough USDC for the simulated swap.
     //
-    // 1 collateral token = 1 USDC in the mock.
-    // The liquidation test sells 1 collateral token, so 1 USDC is enough.
+    // The liquidation test sells 2.5 collateral tokens,
+    // so reserve_y must contain at least 2.5 USDC.
     mint_token_2022(
         &mut svm,
         &payer,
         &debt_mint.pubkey(),
         &reserve_y,
         &payer,
-        2_000_000,
+        2_500_000,
     );
 
     // ---------------------------------------------------------
@@ -136,6 +135,15 @@ for address in [lb_pair, reserve_x, oracle] {
         lb_pair,
     );
 
+    let risk_snapshot = initialize_liquidity_risk(
+        &mut svm,
+        program_id,
+        &payer,
+        market,
+        5_000_000_000,
+        5_000_000_000,
+    );
+
     // ---------------------------------------------------------
     // 4. Derive the protocol vault authority.
     // ---------------------------------------------------------
@@ -153,12 +161,7 @@ for address in [lb_pair, reserve_x, oracle] {
     let user_collateral_account =
         associated_token_address(&payer.pubkey(), &collateral_mint.pubkey());
 
-    create_token_2022_ata(
-        &mut svm,
-        &payer,
-        &payer.pubkey(),
-        &collateral_mint.pubkey(),
-    );
+    create_token_2022_ata(&mut svm, &payer, &payer.pubkey(), &collateral_mint.pubkey());
 
     mint_token_2022(
         &mut svm,
@@ -178,41 +181,35 @@ for address in [lb_pair, reserve_x, oracle] {
     // ---------------------------------------------------------
 
     let (position, _) = anchor_lang::prelude::Pubkey::find_program_address(
-        &[
-            POSITION_SEED,
-            market.as_ref(),
-            payer.pubkey().as_ref(),
-        ],
+        &[POSITION_SEED, market.as_ref(), payer.pubkey().as_ref()],
         &program_id,
     );
 
     let vault_collateral_account =
         associated_token_address(&vault_authority, &collateral_mint.pubkey());
 
-    let deposit_instruction =
-        anchor_lang::solana_program::instruction::Instruction::new_with_bytes(
-            program_id,
-            &liquidity_aware_lending::instruction::DepositCollateral {
-                amount: 10_000_000_000,
-            }
-            .data(),
-            liquidity_aware_lending::accounts::DepositCollateral {
-                user: payer.pubkey(),
-                market,
-                position,
-                collateral_mint: collateral_mint.pubkey(),
-                user_collateral_account,
-                vault_authority,
-                vault_collateral_account,
-                token_program: spl_token_2022_interface::ID,
-                associated_token_program: anchor_spl::associated_token::ID,
-                system_program: anchor_lang::solana_program::system_program::ID,
-            }
-            .to_account_metas(None),
-        );
+    let deposit_instruction = anchor_lang::solana_program::instruction::Instruction::new_with_bytes(
+        program_id,
+        &liquidity_aware_lending::instruction::DepositCollateral {
+            amount: 10_000_000_000,
+        }
+        .data(),
+        liquidity_aware_lending::accounts::DepositCollateral {
+            user: payer.pubkey(),
+            market,
+            position,
+            collateral_mint: collateral_mint.pubkey(),
+            user_collateral_account,
+            vault_authority,
+            vault_collateral_account,
+            token_program: spl_token_2022_interface::ID,
+            associated_token_program: anchor_spl::associated_token::ID,
+            system_program: anchor_lang::solana_program::system_program::ID,
+        }
+        .to_account_metas(None),
+    );
 
-    let deposit_result =
-        send_transaction(&mut svm, deposit_instruction, &payer, &[]);
+    let deposit_result = send_transaction(&mut svm, deposit_instruction, &payer, &[]);
 
     assert!(
         deposit_result.is_ok(),
@@ -224,15 +221,9 @@ for address in [lb_pair, reserve_x, oracle] {
     // 7. Create and fund the debt vault.
     // ---------------------------------------------------------
 
-    let debt_vault =
-        associated_token_address(&vault_authority, &debt_mint.pubkey());
+    let debt_vault = associated_token_address(&vault_authority, &debt_mint.pubkey());
 
-    create_token_2022_ata(
-        &mut svm,
-        &payer,
-        &vault_authority,
-        &debt_mint.pubkey(),
-    );
+    create_token_2022_ata(&mut svm, &payer, &vault_authority, &debt_mint.pubkey());
 
     // Give the protocol enough USDC liquidity to satisfy the borrow.
     mint_token_2022(
@@ -256,36 +247,29 @@ for address in [lb_pair, reserve_x, oracle] {
     // This is below the 65% maximum borrow LTV.
     // ---------------------------------------------------------
 
-    let user_debt_account =
-        associated_token_address(&payer.pubkey(), &debt_mint.pubkey());
+    let user_debt_account = associated_token_address(&payer.pubkey(), &debt_mint.pubkey());
 
-    create_token_2022_ata(
-        &mut svm,
-        &payer,
-        &payer.pubkey(),
-        &debt_mint.pubkey(),
+    create_token_2022_ata(&mut svm, &payer, &payer.pubkey(), &debt_mint.pubkey());
+
+    let borrow_instruction = anchor_lang::solana_program::instruction::Instruction::new_with_bytes(
+        program_id,
+        &BorrowInstruction { amount: 6_000_000 }.data(),
+        Borrow {
+            user: payer.pubkey(),
+            market,
+            position,
+            risk_snapshot,
+            collateral_mint: collateral_mint.pubkey(),
+            debt_mint: debt_mint.pubkey(),
+            user_debt_account,
+            vault_authority,
+            debt_vault,
+            token_program: spl_token_2022_interface::ID,
+        }
+        .to_account_metas(None),
     );
 
-    let borrow_instruction =
-        anchor_lang::solana_program::instruction::Instruction::new_with_bytes(
-            program_id,
-            &BorrowInstruction { amount: 6_000_000 }.data(),
-            Borrow {
-                user: payer.pubkey(),
-                market,
-                position,
-                collateral_mint: collateral_mint.pubkey(),
-                debt_mint: debt_mint.pubkey(),
-                user_debt_account,
-                vault_authority,
-                debt_vault,
-                token_program: spl_token_2022_interface::ID,
-            }
-            .to_account_metas(None),
-        );
-
-    let borrow_result =
-        send_transaction(&mut svm, borrow_instruction, &payer, &[]);
+    let borrow_result = send_transaction(&mut svm, borrow_instruction, &payer, &[]);
 
     assert!(
         borrow_result.is_ok(),
@@ -315,9 +299,7 @@ for address in [lb_pair, reserve_x, oracle] {
     // never mutates the market price this way.
     // ---------------------------------------------------------
 
-    let mut market_account = svm
-        .get_account(&market)
-        .expect("market account missing");
+    let mut market_account = svm.get_account(&market).expect("market account missing");
 
     // Anchor account discriminator: 8 bytes
     // collateral_mint:             32 bytes
@@ -395,27 +377,24 @@ for address in [lb_pair, reserve_x, oracle] {
     // ---------------------------------------------------------
 
     let debt_vault_before = common::token_2022_account_amount(
-        &svm
-            .get_account(&debt_vault)   
+        &svm.get_account(&debt_vault)
             .expect("debt vault should exist")
             .data,
     );
 
     let liquidate_data = LiquidateInstruction {
-        collateral_to_sell: 2_000_000_000,
-        min_amount_out: 2_000_000,
+        collateral_to_sell: 2_500_000_000,
+        min_amount_out: 2_500_000,
     }
     .data();
 
-    println!(
-        "liquidate discriminator: {:?}",
-        &liquidate_data[..8]
-    );
+    println!("liquidate discriminator: {:?}", &liquidate_data[..8]);
 
     let mut liquidate_accounts = Liquidate {
         liquidator: liquidator.pubkey(),
         market,
         position,
+        risk_snapshot,
         collateral_mint: collateral_mint.pubkey(),
         liquidator_collateral_account,
         vault_authority,
@@ -435,7 +414,7 @@ for address in [lb_pair, reserve_x, oracle] {
         token_program: spl_token_2022_interface::ID,
     }
     .to_account_metas(None);
-    
+
     // The mock Meteora program expects its reserve authority as the first
     // remaining account after the 16 fixed Swap2 accounts.
     liquidate_accounts.push(
@@ -444,13 +423,12 @@ for address in [lb_pair, reserve_x, oracle] {
             false,
         ),
     );
-    
-    let instruction =
-        anchor_lang::solana_program::instruction::Instruction::new_with_bytes(
-            program_id,
-            &liquidate_data,
-            liquidate_accounts,
-        );
+
+    let instruction = anchor_lang::solana_program::instruction::Instruction::new_with_bytes(
+        program_id,
+        &liquidate_data,
+        liquidate_accounts,
+    );
     // ---------------------------------------------------------
     // 13. Execute the actual Anchor instruction.
     //
@@ -469,45 +447,40 @@ for address in [lb_pair, reserve_x, oracle] {
     // Swap2 discriminator + account layout accepted
     // ---------------------------------------------------------
 
-    let result: TransactionResult =
-        send_transaction(&mut svm, instruction, &payer, &[&liquidator]);
+    let result: TransactionResult = send_transaction(&mut svm, instruction, &payer, &[&liquidator]);
 
     assert!(
         result.is_ok(),
         "liquidate CPI transaction failed: {:?}",
         result.err()
     );
-    
+
     let debt_vault_after = common::token_2022_account_amount(
-        &svm
-            .get_account(&debt_vault)
+        &svm.get_account(&debt_vault)
             .expect("debt vault should exist")
             .data,
     );
-    
+
     assert_eq!(
         debt_vault_after - debt_vault_before,
-        2_000_000,
-        "Meteora mock should deliver 2 USDC to the debt vault"
+        2_500_000,
+        "Meteora mock should deliver 2.5 USDC to the debt vault"
     );
 
     let position_account = svm
-    .get_account(&position)
-    .expect("position account should exist after liquidation");
+        .get_account(&position)
+        .expect("position account should exist after liquidation");
 
-    let position_state =
-        Position::try_deserialize(&mut &position_account.data[..])
-            .expect("failed to deserialize Position");
+    let position_state = Position::try_deserialize(&mut &position_account.data[..])
+        .expect("failed to deserialize Position");
 
     assert_eq!(
-        position_state.collateral_amount,
-        8_000_000_000,
-        "liquidation should reduce collateral by 2 tokens"
+        position_state.collateral_amount, 7_500_000_000,
+        "liquidation should reduce collateral by 2.5 tokens"
     );
 
     assert_eq!(
-        position_state.debt_amount,
-        4_000_000,
-        "liquidation should reduce debt by 2 USDC"
+        position_state.debt_amount, 3_500_000,
+        "liquidation should reduce debt by 2.5 USDC"
     );
 }
