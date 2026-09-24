@@ -1,6 +1,10 @@
 # Osprey Protocol
 
+<<<<<<< HEAD
 **Liquidity aware lending protocol for tokenized equities on Solana.**
+=======
+**Liquidity-aware lending for tokenized equities on Solana.**
+>>>>>>> 5808503 (docs: add Osprey Protocol architecture and risk model)
 
 Osprey Protocol is a collateralized lending protocol that determines borrowing capacity not only from the nominal value of collateral, but also from the liquidity available to actually liquidate that collateral.
 
@@ -717,6 +721,7 @@ Osprey therefore models issuer risk separately from execution liquidity.
 
 The MVP currently uses:
 
+<<<<<<< HEAD
 | Parameter | Value |
 |---|---:|
 | Maximum LTV | 65% |
@@ -728,6 +733,19 @@ The MVP currently uses:
 | Reference Liquidation Size | $5,000 |
 | PreStocks Transfer Fee | 0.5% |
 | Maximum Snapshot Age | 300 slots |
+=======
+| Parameter                  |     Value |
+| -------------------------- | --------: |
+| Maximum LTV                |       65% |
+| Minimum LTV                |       35% |
+| Liquidation Threshold      |       70% |
+| Liquidation Bonus          |        5% |
+| Maximum Liquidation        |       25% |
+| Issuer Risk Ceiling        |       60% |
+| Reference Liquidation Size |    $5,000 |
+| PreStocks Transfer Fee     |      0.5% |
+| Maximum Snapshot Age       | 300 slots |
+>>>>>>> 5808503 (docs: add Osprey Protocol architecture and risk model)
 
 These values are **hackathon MVP parameters**, not production risk recommendations.
 
