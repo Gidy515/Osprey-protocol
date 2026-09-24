@@ -251,9 +251,7 @@ pub fn initialize_market(
 
 pub fn setup_lending_program() -> (LiteSVM, Keypair) {
     let program_id = liquidity_aware_lending::id();
-
     let payer = Keypair::new();
-
     let mut svm = LiteSVM::new();
 
     let program_bytes = include_bytes!(concat!(
@@ -263,6 +261,17 @@ pub fn setup_lending_program() -> (LiteSVM, Keypair) {
 
     svm.add_program(program_id, program_bytes)
         .expect("failed to add lending program");
+
+    let meteora_program_bytes = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../target/deploy/mock_meteora.so"
+    ));
+
+    svm.add_program(
+        liquidity_aware_lending::integrations::meteora::METEORA_DLMM_PROGRAM_ID,
+        meteora_program_bytes,
+    )
+    .expect("failed to add mock Meteora program");
 
     svm.airdrop(&payer.pubkey(), 5_000_000_000)
         .expect("failed to airdrop payer");

@@ -1,8 +1,8 @@
 pub mod constants;
 pub mod error;
 pub mod instructions;
+pub mod integrations;
 pub mod state;
-
 use anchor_lang::prelude::*;
 
 pub use constants::*;
@@ -25,5 +25,21 @@ pub mod liquidity_aware_lending {
 
     pub fn borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
         instructions::borrow::handle_borrow(ctx, amount)
+    }
+
+    pub fn repay(ctx: Context<Repay>, amount: u64) -> Result<()> {
+        instructions::handle_repay(ctx, amount)
+    }
+
+    pub fn withdraw_collateral(ctx: Context<WithdrawCollateral>, amount: u64) -> Result<()> {
+        instructions::handle_withdraw_collateral(ctx, amount)
+    }
+
+    pub fn liquidate<'info>(
+        ctx: Context<'info, Liquidate<'info>>,
+        collateral_to_sell: u64,
+        min_amount_out: u64,
+    ) -> Result<()> {
+        instructions::liquidate::handle_liquidate(ctx, collateral_to_sell, min_amount_out)
     }
 }
