@@ -1,6 +1,6 @@
 # Osprey Protocol
 
-**Liquidity-aware lending for tokenized equities on Solana.**
+**Liquidity aware lending protocol for tokenized equities on Solana.**
 
 Osprey Protocol is a collateralized lending protocol that determines borrowing capacity not only from the nominal value of collateral, but also from the liquidity available to actually liquidate that collateral.
 
