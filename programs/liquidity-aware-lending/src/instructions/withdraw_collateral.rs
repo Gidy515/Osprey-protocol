@@ -94,11 +94,19 @@ pub fn handle_withdraw_collateral(ctx: Context<WithdrawCollateral>, amount: u64)
 
     let collateral_decimals = ctx.accounts.collateral_mint.decimals;
 
-    let remaining_collateral_value_usdc = remaining_collateral
-        .checked_mul(market.collateral_price_usdc)
-        .ok_or(LendingError::MathOverflow)?
-        .checked_div(10u64.pow(collateral_decimals as u32))
+    let collateral_scale = 10u128
+        .checked_pow(collateral_decimals as u32)
         .ok_or(LendingError::MathOverflow)?;
+
+    let remaining_collateral_value_usdc_u128 = (remaining_collateral as u128)
+        .checked_mul(market.collateral_price_usdc as u128)
+        .ok_or(LendingError::MathOverflow)?
+        .checked_div(collateral_scale)
+        .ok_or(LendingError::MathOverflow)?;
+
+    let remaining_collateral_value_usdc =
+        u64::try_from(remaining_collateral_value_usdc_u128)
+            .map_err(|_| LendingError::MathOverflow)?;
 
     if position.debt_amount > 0 {
         let clock = Clock::get()?;

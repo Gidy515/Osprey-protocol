@@ -110,11 +110,15 @@ pub fn assess_risk(
 
     let effective_ltv_bps = execution_ltv_bps.min(market.issuer_risk_ceiling_bps);
 
-    let max_debt = collateral_value_usdc
-        .checked_mul(effective_ltv_bps as u64)
+    let max_debt_u128 = (collateral_value_usdc as u128)
+        .checked_mul(effective_ltv_bps as u128)
         .ok_or(LendingError::MathOverflow)?
-        .checked_div(10_000)
+        .checked_div(10_000u128)
         .ok_or(LendingError::MathOverflow)?;
+
+    let max_debt =
+        u64::try_from(max_debt_u128)
+            .map_err(|_| LendingError::MathOverflow)?;
 
     Ok(RiskAssessment {
         execution_ltv_bps,

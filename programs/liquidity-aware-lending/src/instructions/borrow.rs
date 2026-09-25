@@ -89,12 +89,19 @@ pub fn handle_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
 
     let collateral_decimals = ctx.accounts.collateral_mint.decimals;
 
-    let collateral_value_usdc = position
-        .collateral_amount
-        .checked_mul(market.collateral_price_usdc)
-        .ok_or(LendingError::MathOverflow)?
-        .checked_div(10u64.pow(collateral_decimals as u32))
+    let collateral_scale = 10u128
+        .checked_pow(collateral_decimals as u32)
         .ok_or(LendingError::MathOverflow)?;
+
+    let collateral_value_usdc_u128 = (position.collateral_amount as u128)
+        .checked_mul(market.collateral_price_usdc as u128)
+        .ok_or(LendingError::MathOverflow)?
+        .checked_div(collateral_scale)
+        .ok_or(LendingError::MathOverflow)?;
+
+    let collateral_value_usdc =
+        u64::try_from(collateral_value_usdc_u128)
+            .map_err(|_| LendingError::MathOverflow)?;
 
     require!(
         collateral_value_usdc > 0,
