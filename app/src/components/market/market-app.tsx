@@ -6,6 +6,7 @@ import {
   useWallet,
 } from "@solana/wallet-adapter-react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { getTransactionErrorMessage } from "@/lib/osprey/errors";
@@ -17,6 +18,8 @@ import {
 } from "@/lib/osprey/transactions";
 import { useOspreyMarket } from "@/lib/osprey/use-market";
 import { useOspreyPosition } from "@/lib/osprey/use-position";
+
+import { OspreyLogo } from "@/components/brand/osprey-logo";
 
 import styles from "./market-app.module.css";
 
@@ -339,7 +342,7 @@ export default function MarketApp() {
 
     switch (selectedAction) {
       case "deposit":
-        return "Deposit Demo ANTH as collateral. Token-2022 transfer fees are accounted for on-chain.";
+        return "Deposit ANTH as collateral. Token-2022 transfer fees are accounted for onchain.";
 
       case "borrow":
         return `Borrow against the current ${
@@ -347,7 +350,7 @@ export default function MarketApp() {
         } liquidity-adjusted LTV.`;
 
       case "repay":
-        return "Repayment reduces your outstanding Demo USDC debt and does not require a fresh risk snapshot.";
+        return "Repayment reduces your outstanding USDC debt and does not require a fresh risk snapshot.";
 
       case "withdraw":
         return "Withdrawals are checked against the current liquidity-adjusted borrowing limit.";
@@ -356,364 +359,526 @@ export default function MarketApp() {
 
   return (
     <main className={styles.page}>
-      <div className={styles.shell}>
-        <header className={styles.header}>
-          <div className={styles.brand}>
-            <div className={styles.brandMark}>O</div>
+      <aside className={styles.sidebar}>
+        <Link href="/" className={styles.sidebarBrand}>
+          <OspreyLogo size={38} />
+        </Link>
 
-            <div>
-              <div className={styles.brandName}>OSPREY</div>
-              <div className={styles.network}>Liquidity-aware lending</div>
+        <nav className={styles.sidebarNav}>
+          <a href="#overview" className={styles.navActive}>
+            <span>⌂</span>
+            Overview
+          </a>
+
+          <a href="#market">
+            <span>◫</span>
+            Markets
+          </a>
+
+          <a href="#position">
+            <span>◇</span>
+            Positions
+          </a>
+
+          <Link href="/risk">
+            <span>⌁</span>
+            Risk Engine
+          </Link>
+        </nav>
+
+        <div className={styles.sidebarBottom}>
+          <div className={styles.networkStatus}>
+            <span className={styles.networkDot} />
+            Solana Devnet
+          </div>
+
+          <p>Liquidity-aware credit infrastructure.</p>
+        </div>
+      </aside>
+
+      <div className={styles.main}>
+        <header className={styles.topbar}>
+          <div>
+            <div className={styles.mobileBrand}>
+              <OspreyLogo size={34} />
             </div>
+
+            <p className={styles.topbarEyebrow}>
+              TOKENIZED EQUITY CREDIT
+            </p>
           </div>
 
           <WalletMultiButton />
         </header>
 
-        <section className={styles.hero}>
-          <p className={styles.eyebrow}>
-            Lending infrastructure for tokenized equities
-          </p>
+        <div className={styles.content}>
+          <section id="overview" className={styles.overviewHeader}>
+            <div>
+              <p className={styles.eyebrow}>OVERVIEW</p>
+              <h1>Portfolio Overview</h1>
 
-          <h1 className={styles.heroTitle}>
-            Borrow against what markets can actually recover.
-          </h1>
-
-          <p className={styles.heroCopy}>
-            Osprey adjusts borrowing power using executable liquidation
-            liquidity and issuer risk instead of relying on a static collateral
-            ratio alone.
-          </p>
-        </section>
-
-        {marketLoading && (
-          <div className={styles.loading}>Loading Osprey market…</div>
-        )}
-
-        {marketError && (
-          <div
-            role="alert"
-            className={`${styles.notice} ${styles.noticeError}`}
-          >
-            {marketError}
-          </div>
-        )}
-
-        {market && snapshot && risk && (
-          <>
-            <div className={styles.marketBar}>
-              <div className={styles.marketIdentity}>
-                <div className={styles.assetIcon}>A</div>
-
-                <div>
-                  <h2 className={styles.marketTitle}>ANTH / USDC</h2>
-
-                  <p className={styles.marketSubtitle}>
-                    Demo Anthropic collateral · Meteora DLMM liquidity
-                  </p>
-                </div>
-              </div>
-
-              <span className={styles.devnetBadge}>DEVNET</span>
+              <p>
+                Manage tokenized equity collateral and stablecoin credit
+                against Osprey&apos;s liquidity-aware borrowing limits.
+              </p>
             </div>
 
-            <div className={styles.topGrid}>
-              <section className={styles.card}>
-                <p className={styles.cardLabel}>Osprey Risk Engine</p>
+            <div
+              className={`${styles.marketState} ${
+                snapshotFresh ? styles.marketStateLive : styles.marketStateStale
+              }`}
+            >
+              <span />
+              {snapshotFresh ? "Market live" : "Liquidity updating"}
+            </div>
+          </section>
 
-                <h2 className={styles.cardHeading}>
-                  Liquidity-adjusted borrowing power
-                </h2>
+          {marketLoading && (
+            <div className={styles.loading}>Loading Osprey market…</div>
+          )}
 
-                <div className={styles.riskHero}>
-                  <div>
-                    <div className={styles.effectiveLabel}>Effective LTV</div>
+          {marketError && (
+            <div
+              role="alert"
+              className={`${styles.notice} ${styles.noticeError}`}
+            >
+              {marketError}
+            </div>
+          )}
 
-                    <div className={styles.effectiveValue}>
-                      {percent(risk.effectiveLtvBps)}
+          {market && snapshot && risk && (
+            <>
+              <section className={styles.portfolioMetrics}>
+                <article>
+                  <span>COLLATERAL VALUE</span>
+                  <strong>${usdc(collateralValue)}</strong>
+                  <small>{anthropic(collateral)} ANTH deposited</small>
+                </article>
+
+                <article>
+                  <span>BORROWED</span>
+                  <strong>${usdc(debt)}</strong>
+                  <small>USDC outstanding</small>
+                </article>
+
+                <article>
+                  <span>BORROW LIMIT</span>
+                  <strong>${usdc(maxDebt)}</strong>
+                  <small>
+                    At {percent(risk.effectiveLtvBps)} effective LTV
+                  </small>
+                </article>
+
+                <article>
+                  <span>UTILIZATION</span>
+                  <strong>{percent(debtUsageBps)}</strong>
+
+                  <div className={styles.utilizationTrack}>
+                    <div
+                      style={{
+                        width: `${Math.min(100, debtUsageBps / 100)}%`,
+                      }}
+                    />
+                  </div>
+                </article>
+              </section>
+
+              <section id="market" className={styles.marketPanel}>
+                <div className={styles.marketHeader}>
+                  <div className={styles.marketIdentity}>
+                    <div
+                      className={styles.assetIcon}
+                      aria-label="ANTH market"
+                    >
+                      <span>AN</span>
+                    </div>
+
+                    <div>
+                      <div className={styles.marketNameRow}>
+                        <h2>Anthropic</h2>
+
+                        <span
+                          className={
+                            snapshotFresh
+                              ? styles.liveBadge
+                              : styles.staleBadge
+                          }
+                        >
+                          ● {snapshotFresh ? "LIVE" : "UPDATING"}
+                        </span>
+                      </div>
+
+                      <p>
+                        ANTH / USDC · Tokenized equity market · Meteora DLMM
+                      </p>
                     </div>
                   </div>
 
-                  <div className={styles.riskSteps}>
-                    <div className={styles.riskStep}>
-                      <span className={styles.riskStepLabel}>
-                        Static maximum
-                      </span>
+                  <div className={styles.marketPrice}>
+                    <span>MARKET PRICE</span>
+                    <strong>
+                      ${usdc(market.collateralPriceUsdc)}
+                    </strong>
+                    <small>per ANTH</small>
+                  </div>
+                </div>
 
-                      <span className={styles.riskStepValue}>
-                        {percent(market.maxLtvBps)}
-                      </span>
+                <div className={styles.marketDataGrid}>
+                  <article>
+                    <span>EXECUTABLE RECOVERY</span>
+                    <strong>{percent(risk.recoveryBps)}</strong>
+
+                    <div className={styles.recoveryTrack}>
+                      <div style={{ width: recoveryWidth }} />
                     </div>
 
-                    <div className={styles.riskStep}>
-                      <span className={styles.riskStepLabel}>
-                        Execution LTV
-                      </span>
+                    <small>
+                      ${usdc(snapshot.quoteUsdcOut)} executable from $
+                      {usdc(market.referenceLiquidationSizeUsdc)}
+                    </small>
+                  </article>
 
-                      <span
-                        className={`${styles.riskStepValue} ${styles.copper}`}
-                      >
-                        {percent(risk.executionLtvBps)}
-                      </span>
-                    </div>
+                  <article className={styles.effectiveMetric}>
+                    <span>EFFECTIVE LTV</span>
+                    <strong>{percent(risk.effectiveLtvBps)}</strong>
+                    <small>Current borrowing power</small>
+                  </article>
 
-                    <div className={styles.riskStep}>
-                      <span className={styles.riskStepLabel}>
-                        Issuer ceiling
-                      </span>
+                  <article>
+                    <span>MARKET MAXIMUM</span>
+                    <strong>{percent(market.maxLtvBps)}</strong>
+                    <small>Configured upper bound</small>
+                  </article>
 
-                      <span className={styles.riskStepValue}>
-                        {percent(market.issuerRiskCeilingBps)}
-                      </span>
-                    </div>
+                  <article>
+                    <span>ISSUER CEILING</span>
+                    <strong>
+                      {percent(market.issuerRiskCeilingBps)}
+                    </strong>
+                    <small>Asset-level risk ceiling</small>
+                  </article>
+                </div>
+
+                <div className={styles.riskEquation}>
+                  <div>
+                    <span>MARKET MAX</span>
+                    <strong>{percent(market.maxLtvBps)}</strong>
+                  </div>
+
+                  <b>×</b>
+
+                  <div>
+                    <span>RECOVERY</span>
+                    <strong>{percent(risk.recoveryBps)}</strong>
+                  </div>
+
+                  <b>→</b>
+
+                  <div>
+                    <span>EXECUTION LTV</span>
+                    <strong>{percent(risk.executionLtvBps)}</strong>
+                  </div>
+
+                  <b>∩</b>
+
+                  <div>
+                    <span>ISSUER CEILING</span>
+                    <strong>
+                      {percent(market.issuerRiskCeilingBps)}
+                    </strong>
+                  </div>
+
+                  <b>→</b>
+
+                  <div className={styles.equationResult}>
+                    <span>EFFECTIVE</span>
+                    <strong>{percent(risk.effectiveLtvBps)}</strong>
                   </div>
                 </div>
               </section>
 
-              <section className={styles.card}>
-                <p className={styles.cardLabel}>Executable Liquidity</p>
-
-                <h2 className={styles.cardHeading}>Liquidation recovery</h2>
-
-                <div className={styles.liquidityFlow}>
-                  <div className={styles.flowNumbers}>
+              <div id="position" className={styles.positionGrid}>
+                <section className={styles.positionPanel}>
+                  <div className={styles.panelHeader}>
                     <div>
-                      <div className={styles.flowValue}>
-                        ${usdc(market.referenceLiquidationSizeUsdc)}
-                      </div>
-
-                      <div className={styles.flowCaption}>
-                        reference liquidation
-                      </div>
+                      <p className={styles.cardLabel}>YOUR POSITION</p>
+                      <h2>ANTH collateral</h2>
                     </div>
 
-                    <div className={styles.flowArrow}>→</div>
-
-                    <div>
-                      <div className={styles.flowValue}>
-                        ${usdc(snapshot.quoteUsdcOut)}
-                      </div>
-
-                      <div className={styles.flowCaption}>
-                        executable output
-                      </div>
-                    </div>
+                    {connected && (
+                      <span
+                        className={`${styles.healthBadge} ${
+                          debtUsageBps >= 9000
+                            ? styles.healthDanger
+                            : debtUsageBps >= 7500
+                              ? styles.healthWarning
+                              : ""
+                        }`}
+                      >
+                        {debtUsageBps >= 9000
+                          ? "High utilization"
+                          : debtUsageBps >= 7500
+                            ? "Watch position"
+                            : "Healthy"}
+                      </span>
+                    )}
                   </div>
 
-                  <div className={styles.recoveryTrack}>
+                  {!connected && (
+                    <div className={styles.emptyState}>
+                      <strong>No wallet connected</strong>
+                      <p>
+                        Connect your wallet to view your Osprey lending
+                        position.
+                      </p>
+                    </div>
+                  )}
+
+                  {connected && positionLoading && (
+                    <div className={styles.loading}>Loading position…</div>
+                  )}
+
+                  {positionError && (
                     <div
-                      className={styles.recoveryFill}
+                      role="alert"
+                      className={`${styles.notice} ${styles.noticeError}`}
+                    >
+                      {positionError}
+                    </div>
+                  )}
+
+                  {connected && !positionLoading && (
+                    <div className={styles.positionStats}>
+                      <div>
+                        <span>COLLATERAL</span>
+                        <strong>{anthropic(collateral)} ANTH</strong>
+                        <small>${usdc(collateralValue)}</small>
+                      </div>
+
+                      <div>
+                        <span>DEBT</span>
+                        <strong>${usdc(debt)}</strong>
+                        <small>USDC</small>
+                      </div>
+                    </div>
+                  )}
+                </section>
+
+                <section className={styles.borrowPanel}>
+                  <div className={styles.panelHeader}>
+                    <div>
+                      <p className={styles.cardLabel}>BORROWING POWER</p>
+                      <h2>${usdc(availableDebt)} available</h2>
+                    </div>
+
+                    <span className={styles.ltvValue}>
+                      {percent(risk.effectiveLtvBps)} LTV
+                    </span>
+                  </div>
+
+                  <div className={styles.borrowTrack}>
+                    <div
                       style={{
-                        width: recoveryWidth,
+                        width: `${Math.min(100, debtUsageBps / 100)}%`,
                       }}
                     />
                   </div>
 
-                  <div className={styles.recoveryMeta}>
-                    <span>Recovery</span>
-                    <strong>{percent(risk.recoveryBps)}</strong>
-                  </div>
-                </div>
-
-                <div className={styles.statusRow}>
-                  <div className={styles.status}>
-                    <span
-                      className={`${styles.statusDot} ${
-                        snapshotFresh ? styles.statusFresh : styles.statusStale
-                      }`}
-                    />
-
-                    {snapshotFresh ? "Liquidity live" : "Liquidity updating"}
+                  <div className={styles.borrowScale}>
+                    <span>$0</span>
+                    <span>${usdc(maxDebt)} limit</span>
                   </div>
 
-                  <span className={styles.slot}>
-                    {snapshotAge === null
-                      ? "Checking snapshot"
-                      : `${snapshotAge.toString()} slots old`}
-                  </span>
-                </div>
-              </section>
-            </div>
+                  <div className={styles.snapshotStatus}>
+                    <div>
+                      <span
+                        className={`${styles.statusDot} ${
+                          snapshotFresh
+                            ? styles.statusFresh
+                            : styles.statusStale
+                        }`}
+                      />
 
-            <section className={`${styles.card} ${styles.positionCard}`}>
-              <div className={styles.positionHeader}>
-                <div>
-                  <p className={styles.cardLabel}>Your Position</p>
+                      {snapshotFresh
+                        ? "Liquidity snapshot fresh"
+                        : "Liquidity snapshot stale"}
+                    </div>
 
-                  <h2 className={styles.cardHeading}>
-                    ANTH collateral position
-                  </h2>
-                </div>
-
-                {connected && risk && (
-                  <div className={styles.slot}>
-                    Debt capacity used {percent(debtUsageBps)}
+                    <span>
+                      {snapshotAge === null
+                        ? "Checking age"
+                        : `${snapshotAge.toString()} slots old`}
+                    </span>
                   </div>
-                )}
+                </section>
               </div>
 
-              {!connected && (
-                <div className={styles.loading}>
-                  Connect your wallet to open or manage a lending position.
-                </div>
-              )}
+              <section className={styles.managementPanel}>
+                <div className={styles.managementHeader}>
+                  <div>
+                    <p className={styles.cardLabel}>
+                      POSITION MANAGEMENT
+                    </p>
 
-              {connected && positionLoading && (
-                <div className={styles.loading}>Loading position…</div>
-              )}
-
-              {positionError && (
-                <div
-                  role="alert"
-                  className={`${styles.notice} ${styles.noticeError}`}
-                >
-                  {positionError}
-                </div>
-              )}
-
-              {connected && !positionLoading && (
-                <>
-                  <div className={styles.positionMetrics}>
-                    <div className={styles.metric}>
-                      <div className={styles.metricLabel}>Collateral</div>
-
-                      <div className={styles.metricValue}>
-                        {anthropic(collateral)} ANTH
-                      </div>
-                    </div>
-
-                    <div className={styles.metric}>
-                      <div className={styles.metricLabel}>Collateral value</div>
-
-                      <div className={styles.metricValue}>
-                        ${usdc(collateralValue)}
-                      </div>
-                    </div>
-
-                    <div className={styles.metric}>
-                      <div className={styles.metricLabel}>Debt</div>
-
-                      <div className={styles.metricValue}>${usdc(debt)}</div>
-                    </div>
-
-                    <div className={styles.metric}>
-                      <div className={styles.metricLabel}>Available</div>
-
-                      <div className={styles.metricValue}>
-                        ${usdc(availableDebt)}
-                      </div>
-                    </div>
+                    <h2>Manage collateral and debt</h2>
                   </div>
 
-                  <div className={styles.actionArea}>
-                    <div className={styles.actionTabs}>
-                      {(
-                        [
-                          "deposit",
-                          "borrow",
-                          "repay",
-                          "withdraw",
-                        ] as ActionType[]
-                      ).map((item) => (
-                        <button
-                          key={item}
-                          type="button"
-                          className={`${styles.actionTab} ${
-                            selectedAction === item
-                              ? styles.actionTabActive
-                              : ""
-                          }`}
-                          onClick={() => chooseAction(item)}
-                          disabled={!!action}
-                        >
-                          {actionLabel(item)}
-                        </button>
-                      ))}
-                    </div>
+                  <span>
+                    Risk-increasing actions require fresh liquidity data.
+                  </span>
+                </div>
 
-                    <div className={styles.actionForm}>
-                      <div className={styles.amountField}>
-                        <input
-                          className={styles.amountInput}
-                          type="text"
-                          inputMode="decimal"
-                          value={amount}
-                          onChange={(event) => {
-                            setAmount(event.target.value);
-                            setActionError(null);
-                            setActionSuccess(null);
-                          }}
-                          placeholder="0.00"
-                          aria-label={`${actionLabel(selectedAction)} amount`}
-                        />
+                <div className={styles.actionTabs}>
+                  {(
+                    [
+                      "deposit",
+                      "borrow",
+                      "repay",
+                      "withdraw",
+                    ] as ActionType[]
+                  ).map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      className={`${styles.actionTab} ${
+                        selectedAction === item
+                          ? styles.actionTabActive
+                          : ""
+                      }`}
+                      onClick={() => chooseAction(item)}
+                      disabled={!!action}
+                    >
+                      {actionLabel(item)}
+                    </button>
+                  ))}
+                </div>
 
-                        <span className={styles.amountAsset}>
-                          {selectedAsset}
-                        </span>
-                      </div>
+                <div className={styles.actionBody}>
+                  <div className={styles.actionCopy}>
+                    <span>
+                      {actionLabel(selectedAction).toUpperCase()}{" "}
+                      {selectedAsset}
+                    </span>
 
-                      <button
-                        type="button"
-                        className={styles.primaryButton}
-                        onClick={executeAction}
-                        disabled={actionDisabled}
-                      >
-                        {action ?? actionLabel(selectedAction)}
-                      </button>
-                    </div>
+                    <h3>
+                      {selectedAction === "deposit" &&
+                        "Supply tokenized equity collateral."}
 
-                    <p className={styles.actionHint}>{actionHint()}</p>
+                      {selectedAction === "borrow" &&
+                        "Borrow USDC against available credit."}
 
-                    {!snapshotFresh && (
-                      <div className={styles.staleNotice}>
-                        Market liquidity is being refreshed. Borrow and Withdraw
-                        are temporarily unavailable. Deposit and Repay remain
-                        available because they do not increase position risk.
-                      </div>
-                    )}
+                      {selectedAction === "repay" &&
+                        "Reduce your outstanding USDC debt."}
 
-                    {action && (
-                      <div
-                        role="status"
-                        className={`${styles.notice} ${styles.noticeLoading}`}
-                      >
-                        Confirm the transaction in your wallet.
-                      </div>
-                    )}
+                      {selectedAction === "withdraw" &&
+                        "Remove collateral within your borrowing limit."}
+                    </h3>
 
-                    {actionSuccess && (
-                      <div
-                        role="status"
-                        className={`${styles.notice} ${styles.noticeSuccess}`}
-                      >
-                        {actionSuccess}
-                      </div>
-                    )}
-
-                    {actionError && (
-                      <div
-                        role="alert"
-                        className={`${styles.notice} ${styles.noticeError}`}
-                      >
-                        <strong>Transaction not completed.</strong>{" "}
-                        {actionError}
-                      </div>
-                    )}
+                    <p>{actionHint()}</p>
                   </div>
-                </>
-              )}
-            </section>
 
-            <footer className={styles.footer}>
-              <span>
-                Osprey Protocol · Liquidity-aware lending for tokenized
-                equities.
-              </span>
+                  <div className={styles.actionControls}>
+                    <div className={styles.amountField}>
+                      <input
+                        className={styles.amountInput}
+                        type="text"
+                        inputMode="decimal"
+                        value={amount}
+                        onChange={(event) => {
+                          setAmount(event.target.value);
+                          setActionError(null);
+                          setActionSuccess(null);
+                        }}
+                        placeholder="0.00"
+                        aria-label={`${actionLabel(selectedAction)} amount`}
+                      />
 
-              <span>Devnet demonstration · Demo ANTH / Demo USDC</span>
-            </footer>
-          </>
-        )}
+                      <span className={styles.amountAsset}>
+                        {selectedAsset}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      className={styles.primaryButton}
+                      onClick={executeAction}
+                      disabled={actionDisabled}
+                    >
+                      {action ?? actionLabel(selectedAction)}
+                    </button>
+                  </div>
+                </div>
+
+                {!connected && (
+                  <div className={styles.staleNotice}>
+                    Connect your wallet before managing a position.
+                  </div>
+                )}
+
+                {!snapshotFresh && connected && (
+                  <div className={styles.staleNotice}>
+                    Market liquidity is being refreshed. Borrow and Withdraw
+                    are temporarily unavailable. Deposit and Repay remain
+                    available because they do not increase position risk.
+                  </div>
+                )}
+
+                {action && (
+                  <div
+                    role="status"
+                    className={`${styles.notice} ${styles.noticeLoading}`}
+                  >
+                    Confirm the transaction in your wallet.
+                  </div>
+                )}
+
+                {actionSuccess && (
+                  <div
+                    role="status"
+                    className={`${styles.notice} ${styles.noticeSuccess}`}
+                  >
+                    {actionSuccess}
+                  </div>
+                )}
+
+                {actionError && (
+                  <div
+                    role="alert"
+                    className={`${styles.notice} ${styles.noticeError}`}
+                  >
+                    <strong>Transaction not completed.</strong>{" "}
+                    {actionError}
+                  </div>
+                )}
+              </section>
+
+              <section className={styles.disclosure}>
+                <div>
+                  <strong>Devnet market</strong>
+
+                  <p>
+                    This market uses a Token-2022 test asset representing ANTH
+                    for Osprey&apos;s deployed devnet credit market. Osprey is
+                    not affiliated with or endorsed by Anthropic.
+                  </p>
+                </div>
+
+                <Link href="/risk">
+                  Inspect Risk Engine →
+                </Link>
+              </section>
+
+              <footer className={styles.footer}>
+                <span>
+                  Osprey Protocol · Liquidity-aware credit infrastructure for
+                  tokenized equities.
+                </span>
+
+                <span>Solana Devnet · ANTH / USDC</span>
+              </footer>
+            </>
+          )}
+        </div>
       </div>
     </main>
   );

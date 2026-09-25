@@ -673,7 +673,7 @@ The program additionally contains liquidation logic and Meteora CPI integration.
 jAUJs14M4WiAvrgRgZiKQ2nunkWMrqqM7sGZotmWwss
 ```
 
-## Demo Market
+## ANTH / USDC Market
 
 ```text id="hs6eg8"
 Market
@@ -686,13 +686,13 @@ Vault Authority
 BkCD6v4wQAH1TMCEuUxBx2fdDnZiQd3CRp9k6KjZw79X
 ```
 
-## Demo Assets
+## Devnet Assets
 
 ```text id="hz9rtf"
-Demo ANTH
+ANTH representation
 ArzQGNtfXXQSLcdtVrJPu1CuJZHTiejL55hfum35FsKv
 
-Demo USDC
+USDC test asset
 9nPD667QBEV9rzmySdAqttPM5aTQWkjFH3R6JLhhF734
 ```
 
@@ -706,13 +706,15 @@ Demo USDC
 
 # Devnet Asset Note
 
-The current devnet collateral is a **Meteora-compatible Token-2022 representation used to exercise the complete lending architecture**.
+The current devnet collateral is a **Meteora-compatible Token-2022 test asset representing ANTH and used to exercise the complete lending architecture**.
+
+It is not an official Anthropic asset, and Osprey is not affiliated with or endorsed by Anthropic.
 
 The production risk model is designed to account for issuer controls such as permanent-delegate and freeze authority.
 
-During development, the tested devnet Meteora deployment rejected the PreStock-like Token-2022 extension combination used in the initial fixture. The current demo asset therefore uses a simplified Token-2022 configuration while preserving transfer-fee behavior.
+During development, the tested devnet Meteora deployment rejected the PreStock-like Token-2022 extension combination used in the initial fixture. The current devnet asset therefore uses a simplified Token-2022 configuration while preserving transfer-fee behavior.
 
-This keeps the devnet demonstration focused on the liquidity-aware credit mechanism without misrepresenting the demo token as an actual tokenized equity.
+This allows the deployed market to exercise Osprey's liquidity-aware credit mechanism without representing the devnet collateral as an actual tokenized equity.
 
 ---
 

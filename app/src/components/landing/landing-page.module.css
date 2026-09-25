@@ -1,0 +1,1246 @@
+.page {
+  --carbon: #0d0f0d;
+  --graphite: #151714;
+  --surface: #1c1e1a;
+  --border: rgba(244, 240, 232, 0.09);
+  --border-strong: rgba(244, 240, 232, 0.16);
+  --ivory: #f4f0e8;
+  --muted: #999b94;
+  --copper: #c86f3d;
+  --bright: #e58a52;
+  --green: #62a875;
+
+  min-height: 100vh;
+  overflow: hidden;
+  color: var(--ivory);
+  background:
+    radial-gradient(
+      circle at 78% 12%,
+      rgba(200, 111, 61, 0.1),
+      transparent 26%
+    ),
+    var(--carbon);
+}
+
+.page :global(.osprey-logo) {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page :global(.osprey-logo strong) {
+  color: var(--ivory);
+  font-size: 14px;
+  letter-spacing: 0.14em;
+}
+
+.nav,
+.hero,
+.section,
+.stack,
+.siteFooter {
+  width: min(1240px, calc(100% - 48px));
+  margin-inline: auto;
+}
+
+.nav {
+  height: 88px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.logoLink {
+  width: fit-content;
+  text-decoration: none;
+}
+
+.navLinks {
+  display: flex;
+  gap: 38px;
+}
+
+.navLinks a,
+.siteFooter a {
+  color: var(--muted);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.launchButton {
+  justify-self: end;
+  display: flex;
+  gap: 18px;
+  padding: 12px 17px;
+  border: 1px solid rgba(200, 111, 61, 0.45);
+  border-radius: 9px;
+  color: var(--bright);
+  background: rgba(200, 111, 61, 0.06);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.hero {
+  min-height: 690px;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 70px;
+  align-items: center;
+  padding: 75px 0 90px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--bright);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+}
+
+.hero h1 {
+  max-width: 720px;
+  margin: 22px 0 0;
+  font-size: clamp(55px, 6.2vw, 91px);
+  line-height: 0.94;
+  letter-spacing: -0.065em;
+  font-weight: 520;
+}
+
+.hero h1 em,
+.sectionIntro h2 em {
+  color: var(--bright);
+  font-style: normal;
+}
+
+.heroText {
+  max-width: 600px;
+  margin: 28px 0 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.heroActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 34px;
+}
+
+.primary,
+.secondary {
+  min-height: 48px;
+  padding: 0 19px;
+  display: inline-flex;
+  align-items: center;
+  gap: 28px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.primary {
+  color: #10110f;
+  background: var(--copper);
+}
+
+.secondary {
+  color: var(--ivory);
+  border: 1px solid var(--border-strong);
+}
+
+.integrations {
+  display: flex;
+  gap: 24px;
+  margin-top: 34px;
+  color: #70736c;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.integrations span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.integrations i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.visual {
+  position: relative;
+}
+
+.glow {
+  position: absolute;
+  inset: 10%;
+  background: rgba(200, 111, 61, 0.1);
+  filter: blur(80px);
+}
+
+.riskCard {
+  position: relative;
+  padding: 26px;
+  border: 1px solid rgba(200, 111, 61, 0.2);
+  border-radius: 22px;
+  background: linear-gradient(145deg, #20221e, #111210);
+  box-shadow: 0 35px 100px rgba(0, 0, 0, 0.4);
+}
+
+.riskCard header,
+.marketCard header,
+.riskCard footer,
+.marketCard footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.riskCard header {
+  color: #777a73;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.riskCard header b,
+.live {
+  color: var(--green) !important;
+}
+
+.asset {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin: 28px 0;
+}
+
+.asset > div:last-child {
+  display: grid;
+  gap: 5px;
+}
+
+.asset span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.assetMark,
+.openAi {
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ivory);
+  color: var(--carbon);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.openAi {
+  background: #292b27;
+  color: var(--ivory);
+}
+
+.riskMetric {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  margin-top: 20px;
+}
+
+.riskMetric span {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.riskMetric strong {
+  font-size: 23px;
+}
+
+.finalMetric strong {
+  color: var(--bright);
+  font-size: 38px;
+}
+
+.track {
+  height: 3px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(244, 240, 232, 0.06);
+}
+
+.track div {
+  height: 100%;
+  background: var(--copper);
+}
+
+.riskCard footer {
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  color: #74766f;
+  font-size: 11px;
+}
+
+.riskCard footer strong {
+  color: var(--ivory);
+}
+
+.section,
+.stack {
+  padding: 110px 0;
+  border-top: 1px solid var(--border);
+}
+
+.sectionIntro {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 90px;
+  align-items: end;
+  margin-top: 20px;
+}
+
+.sectionIntro h2,
+.sectionTitle,
+.stack h2,
+.cta h2 {
+  margin: 0;
+  font-size: clamp(38px, 4.5vw, 64px);
+  line-height: 1;
+  letter-spacing: -0.055em;
+  font-weight: 520;
+}
+
+.sectionIntro p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.model {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  gap: 20px;
+  align-items: center;
+  margin-top: 65px;
+}
+
+.model article {
+  min-height: 170px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.model article span {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.13em;
+}
+
+.model article strong {
+  margin-top: 13px;
+  font-size: 36px;
+}
+
+.model article small {
+  margin-top: 8px;
+  color: #70726c;
+}
+
+.model > b {
+  color: var(--copper);
+}
+
+.model .highlight {
+  border-color: rgba(200, 111, 61, 0.35);
+  background: rgba(200, 111, 61, 0.06);
+}
+
+.model .highlight strong {
+  color: var(--bright);
+}
+
+.sectionTitle {
+  margin-top: 20px;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 55px;
+}
+
+.features article {
+  min-height: 260px;
+  padding: 25px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #1b1d19, #121311);
+}
+
+.features article > span {
+  color: var(--copper);
+  font-size: 12px;
+}
+
+.features h3 {
+  margin-top: 55px;
+  font-size: 17px;
+}
+
+.features p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.marketHeading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 30px;
+}
+
+.marketHeading > a {
+  color: var(--bright);
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.markets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 50px;
+}
+
+.marketCard {
+  display: block;
+  padding: 26px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  color: var(--ivory);
+  background: var(--graphite);
+  text-decoration: none;
+}
+
+.marketCard .asset {
+  margin: 0;
+}
+
+.marketCard header b {
+  color: #777a73;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.marketMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 35px;
+}
+
+.marketMetrics div {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.marketMetrics span,
+.marketMetrics strong {
+  display: block;
+}
+
+.marketMetrics span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.marketMetrics strong {
+  margin-top: 8px;
+}
+
+.marketMetrics div:last-child strong {
+  color: var(--bright);
+}
+
+.marketCard footer {
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.upcoming {
+  opacity: 0.62;
+}
+
+.upcoming > p {
+  margin: 45px 0 70px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.stack {
+  display: grid;
+  grid-template-columns: 0.7fr 1.3fr;
+  gap: 70px;
+  align-items: center;
+}
+
+.stack h2 {
+  margin-top: 20px;
+  font-size: clamp(38px, 4vw, 57px);
+}
+
+.stackFlow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+  gap: 9px;
+  align-items: center;
+}
+
+.stackFlow article {
+  min-height: 150px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.stackFlow article > span {
+  color: var(--copper);
+  font-size: 11px;
+}
+
+.stackFlow strong {
+  margin-top: 25px;
+  font-size: 12px;
+}
+
+.stackFlow small {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.stackFlow > b {
+  color: var(--copper);
+}
+
+.stackOsprey {
+  border-color: rgba(200, 111, 61, 0.4) !important;
+  background: rgba(200, 111, 61, 0.07);
+}
+
+.cta {
+  width: min(1000px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 135px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.cta h2 {
+  margin-top: 28px;
+}
+
+.cta p {
+  max-width: 570px;
+  margin: 24px 0 30px;
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.siteFooter {
+  min-height: 100px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  border-top: 1px solid var(--border);
+}
+
+.siteFooter p {
+  justify-self: center;
+  color: #666861;
+  font-size: 11px;
+}
+
+.siteFooter > a {
+  justify-self: end;
+}
+
+@media (max-width: 960px) {
+  .nav {
+    grid-template-columns: 1fr auto;
+  }
+
+  .navLinks {
+    display: none;
+  }
+
+  .hero,
+  .sectionIntro,
+  .stack {
+    grid-template-columns: 1fr;
+  }
+
+  .features {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 680px) {
+  .nav,
+  .hero,
+  .section,
+  .stack,
+  .siteFooter {
+    width: calc(100% - 32px);
+  }
+
+  .hero {
+    min-height: auto;
+    padding: 65px 0 80px;
+  }
+
+  .hero h1 {
+    font-size: 52px;
+  }
+
+  .visual {
+    margin-top: 40px;
+  }
+
+  .section,
+  .stack {
+    padding: 80px 0;
+  }
+
+  .model,
+  .features,
+  .markets,
+  .stackFlow,
+  .siteFooter {
+    grid-template-columns: 1fr;
+  }
+
+  .model > b,
+  .stackFlow > b {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+
+  .marketMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .siteFooter {
+    padding: 30px 0;
+    gap: 20px;
+  }
+
+  .siteFooter p,
+  .siteFooter > a {
+    justify-self: start;
+  }
+}
+
+/* ==========================================================
+   READABILITY PASS
+   ========================================================== */
+
+.hero p,
+.heroCopy {
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.sectionIntro,
+.sectionCopy {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.card p,
+.featureCard p,
+.marketCard p {
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.card small,
+.featureCard small,
+.marketCard small {
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.footer {
+  font-size: 11px;
+}
+
+
+/* ==========================================================
+   OSPREY MOTION SYSTEM
+   ========================================================== */
+
+/*
+ * Hero entrance
+ */
+
+.nav {
+  animation: ospreyNavEnter 700ms cubic-bezier(.2,.8,.2,1) both;
+}
+
+.heroCopy > .eyebrow {
+  opacity: 0;
+  animation: ospreyHeroEnter 650ms 100ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+.heroCopy > h1 {
+  opacity: 0;
+  animation: ospreyHeroEnter 800ms 190ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+.heroCopy > .heroText {
+  opacity: 0;
+  animation: ospreyHeroEnter 750ms 310ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+.heroCopy > .heroActions {
+  opacity: 0;
+  animation: ospreyHeroEnter 700ms 420ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+.heroCopy > .integrations {
+  opacity: 0;
+  animation: ospreyHeroEnter 700ms 520ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+.visual[data-hero-visual] {
+  opacity: 0;
+  animation: ospreyCardEnter 950ms 260ms cubic-bezier(.16,1,.3,1) forwards;
+}
+
+@keyframes ospreyNavEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ospreyHeroEnter {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ospreyCardEnter {
+  from {
+    opacity: 0;
+    transform:
+      perspective(1000px)
+      translateY(30px)
+      rotateX(3deg)
+      rotateY(-3deg)
+      scale(.97);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      perspective(1000px)
+      translateY(0)
+      rotateX(0)
+      rotateY(0)
+      scale(1);
+  }
+}
+
+
+/*
+ * Ambient hero glow
+ */
+
+.glow {
+  animation: ospreyGlow 6s ease-in-out infinite alternate;
+}
+
+@keyframes ospreyGlow {
+  0% {
+    transform: translate3d(-2%, 1%, 0) scale(.94);
+    opacity: .55;
+  }
+
+  50% {
+    transform: translate3d(4%, -3%, 0) scale(1.06);
+    opacity: .85;
+  }
+
+  100% {
+    transform: translate3d(-1%, 3%, 0) scale(1);
+    opacity: .65;
+  }
+}
+
+
+/*
+ * Hero risk card
+ */
+
+.riskCard {
+  transition:
+    transform 450ms cubic-bezier(.2,.8,.2,1),
+    border-color 450ms ease,
+    box-shadow 450ms ease;
+}
+
+.visual:hover .riskCard {
+  transform: translateY(-6px);
+  border-color: rgba(200, 111, 61, .28);
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, .32),
+    0 0 45px rgba(200, 111, 61, .07);
+}
+
+
+/*
+ * Fill the three hero risk bars.
+ *
+ * The inline width remains the final width.
+ * scaleX lets us animate without modifying the data.
+ */
+
+.riskCard .track > div {
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: ospreyBarFill 1.25s cubic-bezier(.16,1,.3,1) forwards;
+}
+
+.riskCard .track:nth-of-type(1) > div {
+  animation-delay: 700ms;
+}
+
+.riskCard .track:nth-of-type(2) > div {
+  animation-delay: 880ms;
+}
+
+.riskCard .track:nth-of-type(3) > div {
+  animation-delay: 1060ms;
+}
+
+@keyframes ospreyBarFill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+
+/*
+ * Live state pulse
+ */
+
+.riskCard header b,
+.live {
+  animation: ospreyLivePulse 2.3s ease-in-out infinite;
+}
+
+@keyframes ospreyLivePulse {
+  0%,
+  100% {
+    opacity: .65;
+  }
+
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 14px rgba(98, 168, 117, .35);
+  }
+}
+
+
+/*
+ * Scroll reveals
+ */
+
+.page [data-reveal] {
+  opacity: 0;
+  transform: translateY(38px);
+  transition:
+    opacity 850ms cubic-bezier(.16,1,.3,1),
+    transform 850ms cubic-bezier(.16,1,.3,1);
+}
+
+.page [data-reveal][data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+/*
+ * Credit model sequence
+ */
+
+.model article {
+  transition:
+    transform 650ms cubic-bezier(.16,1,.3,1),
+    opacity 650ms ease,
+    border-color 300ms ease,
+    background 300ms ease;
+}
+
+.page [data-reveal] .model article,
+.page [data-reveal] .model > b {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.page [data-reveal][data-visible="true"] .model article:nth-of-type(1) {
+  animation: ospreyModelEnter 650ms 150ms cubic-bezier(.16,1,.3,1) forwards;
+}
+
+.page [data-reveal][data-visible="true"] .model > b:nth-of-type(1) {
+  animation: ospreyArrowEnter 450ms 420ms ease forwards;
+}
+
+.page [data-reveal][data-visible="true"] .model article:nth-of-type(2) {
+  animation: ospreyModelEnter 650ms 540ms cubic-bezier(.16,1,.3,1) forwards;
+}
+
+.page [data-reveal][data-visible="true"] .model > b:nth-of-type(2) {
+  animation: ospreyArrowEnter 450ms 810ms ease forwards;
+}
+
+.page [data-reveal][data-visible="true"] .model article:nth-of-type(3) {
+  animation: ospreyResultEnter 750ms 930ms cubic-bezier(.16,1,.3,1) forwards;
+}
+
+@keyframes ospreyModelEnter {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ospreyArrowEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ospreyResultEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(.97);
+  }
+
+  70% {
+    opacity: 1;
+    transform: translateY(0) scale(1.015);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/*
+ * Feature card stagger
+ */
+
+.page [data-reveal] .features article {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.page [data-reveal][data-visible="true"] .features article {
+  animation: ospreyFeatureEnter 650ms cubic-bezier(.16,1,.3,1) forwards;
+}
+
+.page [data-reveal][data-visible="true"] .features article:nth-child(1) {
+  animation-delay: 100ms;
+}
+
+.page [data-reveal][data-visible="true"] .features article:nth-child(2) {
+  animation-delay: 190ms;
+}
+
+.page [data-reveal][data-visible="true"] .features article:nth-child(3) {
+  animation-delay: 280ms;
+}
+
+.page [data-reveal][data-visible="true"] .features article:nth-child(4) {
+  animation-delay: 370ms;
+}
+
+@keyframes ospreyFeatureEnter {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.features article {
+  transition:
+    transform 300ms cubic-bezier(.2,.8,.2,1),
+    border-color 300ms ease,
+    background 300ms ease;
+}
+
+.features article:hover {
+  transform: translateY(-5px);
+  border-color: rgba(200, 111, 61, .25);
+  background: rgba(200, 111, 61, .025);
+}
+
+
+/*
+ * Market cards
+ */
+
+.page [data-reveal] .markets > * {
+  opacity: 0;
+  transform: translateY(25px);
+}
+
+.page [data-reveal][data-visible="true"] .markets > *:nth-child(1) {
+  animation: ospreyFeatureEnter 700ms 150ms cubic-bezier(.16,1,.3,1) forwards;
+}
+
+.page [data-reveal][data-visible="true"] .markets > *:nth-child(2) {
+  animation: ospreyFeatureEnter 700ms 280ms cubic-bezier(.16,1,.3,1) forwards;
+}
+
+.marketCard {
+  transition:
+    transform 350ms cubic-bezier(.2,.8,.2,1),
+    border-color 350ms ease,
+    box-shadow 350ms ease;
+}
+
+.marketCard:hover {
+  transform: translateY(-6px);
+  border-color: rgba(200, 111, 61, .25);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, .18);
+}
+
+
+/*
+ * Capital stack sequence
+ */
+
+.page [data-reveal] .stackFlow article,
+.page [data-reveal] .stackFlow > b {
+  opacity: 0;
+}
+
+.page [data-reveal][data-visible="true"] .stackFlow article {
+  animation: ospreyStackEnter 600ms cubic-bezier(.16,1,.3,1) forwards;
+}
+
+.page [data-reveal][data-visible="true"] .stackFlow article:nth-of-type(1) {
+  animation-delay: 120ms;
+}
+
+.page [data-reveal][data-visible="true"] .stackFlow article:nth-of-type(2) {
+  animation-delay: 360ms;
+}
+
+.page [data-reveal][data-visible="true"] .stackFlow article:nth-of-type(3) {
+  animation-delay: 600ms;
+}
+
+.page [data-reveal][data-visible="true"] .stackFlow article:nth-of-type(4) {
+  animation-delay: 840ms;
+}
+
+.page [data-reveal][data-visible="true"] .stackFlow > b {
+  animation: ospreyArrowEnter 400ms ease forwards;
+}
+
+.page [data-reveal][data-visible="true"] .stackFlow > b:nth-of-type(1) {
+  animation-delay: 270ms;
+}
+
+.page [data-reveal][data-visible="true"] .stackFlow > b:nth-of-type(2) {
+  animation-delay: 510ms;
+}
+
+.page [data-reveal][data-visible="true"] .stackFlow > b:nth-of-type(3) {
+  animation-delay: 750ms;
+}
+
+@keyframes ospreyStackEnter {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.stackOsprey {
+  transition:
+    transform 300ms ease,
+    box-shadow 300ms ease;
+}
+
+.stackOsprey:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 40px rgba(200, 111, 61, .08);
+}
+
+
+/*
+ * Buttons / links
+ */
+
+.primary,
+.secondary,
+.launchButton {
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.primary:hover,
+.launchButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(200, 111, 61, .16);
+}
+
+.secondary:hover {
+  transform: translateY(-2px);
+}
+
+.primary span,
+.secondary span,
+.launchButton span {
+  display: inline-block;
+  transition: transform 220ms ease;
+}
+
+.primary:hover span,
+.launchButton:hover span {
+  transform: translate(2px, -2px);
+}
+
+.secondary:hover span {
+  transform: translateX(4px);
+}
+
+
+/*
+ * Final CTA
+ */
+
+.page [data-reveal][data-visible="true"].cta > * {
+  animation: ospreyCtaEnter 700ms cubic-bezier(.16,1,.3,1) both;
+}
+
+.page [data-reveal][data-visible="true"].cta > *:nth-child(1) {
+  animation-delay: 100ms;
+}
+
+.page [data-reveal][data-visible="true"].cta > *:nth-child(2) {
+  animation-delay: 190ms;
+}
+
+.page [data-reveal][data-visible="true"].cta > *:nth-child(3) {
+  animation-delay: 280ms;
+}
+
+.page [data-reveal][data-visible="true"].cta > *:nth-child(4) {
+  animation-delay: 370ms;
+}
+
+@keyframes ospreyCtaEnter {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/*
+ * Accessibility
+ */
+
+@media (prefers-reduced-motion: reduce) {
+  .nav,
+  .heroCopy > *,
+  .visual[data-hero-visual],
+  .glow,
+  .riskCard .track > div,
+  .riskCard header b,
+  .live,
+  .page [data-reveal],
+  .page [data-reveal] *,
+  .marketCard,
+  .features article,
+  .stackOsprey {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .heroCopy > *,
+  .visual[data-hero-visual],
+  .page [data-reveal],
+  .page [data-reveal] *,
+  .riskCard .track > div {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
