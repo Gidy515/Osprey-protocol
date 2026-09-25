@@ -188,7 +188,7 @@ export default function RiskEngine() {
                   <strong>
                     {snapshotFresh
                       ? "RISK SNAPSHOT LIVE"
-                      : "SNAPSHOT UPDATING"}
+                      : "RISK SNAPSHOT STALE"}
                   </strong>
 
                   <small>
@@ -218,7 +218,16 @@ export default function RiskEngine() {
             <>
               <section className={styles.marketStrip}>
                 <div className={styles.marketIdentity}>
-                  <div className={styles.assetMark}>AN</div>
+                  <div
+                    className={styles.assetMark}
+                    aria-label="Anthropic market"
+                  >
+                    <img
+                      src="/brand/anthropic-logo.svg"
+                      alt=""
+                      aria-hidden="true"
+                    />
+                  </div>
 
                   <div>
                     <span>ANTHROPIC MARKET</span>

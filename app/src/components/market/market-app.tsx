@@ -277,7 +277,7 @@ export default function MarketApp() {
 
     if (riskSensitive && !snapshotFresh) {
       setActionError(
-        "Market liquidity data is being refreshed. Risk-sensitive actions are temporarily unavailable."
+        "Liquidity risk data is stale. Borrow and Withdraw require a fresh on-chain liquidity snapshot."
       );
       return;
     }
@@ -429,7 +429,7 @@ export default function MarketApp() {
               }`}
             >
               <span />
-              {snapshotFresh ? "Market live" : "Liquidity updating"}
+              {snapshotFresh ? "Market live" : "Liquidity stale"}
             </div>
           </section>
 
@@ -488,9 +488,13 @@ export default function MarketApp() {
                   <div className={styles.marketIdentity}>
                     <div
                       className={styles.assetIcon}
-                      aria-label="ANTH market"
+                      aria-label="Anthropic market"
                     >
-                      <span>AN</span>
+                      <img
+                        src="/brand/anthropic-logo.svg"
+                        alt=""
+                        aria-hidden="true"
+                      />
                     </div>
 
                     <div>
@@ -504,7 +508,7 @@ export default function MarketApp() {
                               : styles.staleBadge
                           }
                         >
-                          ● {snapshotFresh ? "LIVE" : "UPDATING"}
+                          ● {snapshotFresh ? "LIVE" : "STALE"}
                         </span>
                       </div>
 
@@ -817,8 +821,8 @@ export default function MarketApp() {
 
                 {!snapshotFresh && connected && (
                   <div className={styles.staleNotice}>
-                    Market liquidity is being refreshed. Borrow and Withdraw
-                    are temporarily unavailable. Deposit and Repay remain
+                    Liquidity risk data is stale. Borrow and Withdraw require a fresh
+                    on-chain liquidity snapshot. Deposit and Repay remain
                     available because they do not increase position risk.
                   </div>
                 )}

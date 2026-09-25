@@ -38,3 +38,126 @@ input {
   background: rgba(200, 111, 61, 0.35);
   color: #f4f0e8;
 }
+
+/* ===== Osprey final readability pass ===== */
+
+/*
+ * Increase weight across the product without changing the established
+ * hierarchy or layout.
+ */
+body {
+  font-weight: 600;
+}
+
+button,
+input,
+textarea,
+select,
+a {
+  font-weight: 700;
+}
+
+strong,
+b {
+  font-weight: 800;
+}
+
+/* Small metadata/labels were too faint in the dark UI. */
+small {
+  font-weight: 600;
+}
+
+/*
+ * Brand mark: existing OspreyLogo calls can keep their individual `size`
+ * values, while CSS gives the rendered mark more visual presence.
+ */
+.osprey-logo {
+  font-weight: 800;
+}
+
+.osprey-logo img {
+  transform: scale(1.18);
+  transform-origin: center;
+}
+
+.osprey-logo strong {
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+/* ===== Osprey high-weight typography pass ===== */
+
+/* Default product copy */
+html,
+body {
+  font-weight: 700 !important;
+}
+
+/* Make virtually all textual UI substantially heavier */
+p,
+span,
+small,
+label,
+a,
+button,
+input,
+textarea,
+select,
+li,
+td,
+th,
+dt,
+dd {
+  font-weight: 700 !important;
+}
+
+/* Section titles / card titles / primary typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+strong,
+b {
+  font-weight: 800 !important;
+}
+
+/* Navigation and interactive UI */
+nav,
+nav *,
+button,
+a {
+  font-weight: 700 !important;
+}
+
+/* Inputs should not look lighter than the surrounding UI */
+input::placeholder,
+textarea::placeholder {
+  font-weight: 700 !important;
+}
+
+/* Osprey branding */
+.osprey-logo {
+  font-weight: 800 !important;
+}
+
+.osprey-logo strong {
+  font-weight: 800 !important;
+  letter-spacing: 0.18em;
+}
+
+/* Slightly larger brand mark */
+.osprey-logo img {
+  transform: scale(1.28);
+  transform-origin: center;
+}
+
+/* ===== Market asset branding ===== */
+
+img[src="/brand/anthropic-logo.svg"] {
+  display: block;
+  width: 62%;
+  height: 62%;
+  object-fit: contain;
+}
