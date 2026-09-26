@@ -1,3 +1,12 @@
+## Live Application
+
+**Current production deployment:**  
+https://osprey-protocol.vercel.app
+
+> The production deployment includes the public test-token faucet and persistent
+> liquidity-risk keeper. The deployment URL included in the original Stocklana
+> submission points to the submission-time build.
+
 # Osprey Protocol
 
 ### Liquidity-aware credit infrastructure for tokenized equities.
@@ -395,14 +404,14 @@ This creates a potential infrastructure layer connecting tokenized capital marke
 
 # Core Protocol Operations
 
-| Instruction | Function |
-|---|---|
-| `initialize` | Creates an isolated tokenized-equity lending market |
-| `deposit_collateral` | Deposits collateral into the protocol |
-| `borrow` | Borrows stablecoins against available collateral capacity |
-| `repay` | Reduces a position's outstanding debt |
-| `withdraw_collateral` | Withdraws collateral while maintaining position health |
-| `liquidate` | Liquidates unhealthy collateral |
+| Instruction             | Function                                                         |
+| ----------------------- | ---------------------------------------------------------------- |
+| `initialize`            | Creates an isolated tokenized-equity lending market              |
+| `deposit_collateral`    | Deposits collateral into the protocol                            |
+| `borrow`                | Borrows stablecoins against available collateral capacity        |
+| `repay`                 | Reduces a position's outstanding debt                            |
+| `withdraw_collateral`   | Withdraws collateral while maintaining position health           |
+| `liquidate`             | Liquidates unhealthy collateral                                  |
 | `update_liquidity_risk` | Updates executable-liquidity information used by the risk engine |
 
 ---
