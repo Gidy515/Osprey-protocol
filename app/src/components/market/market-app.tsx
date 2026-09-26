@@ -70,7 +70,8 @@ function amountToRaw(value: string, decimals: number): bigint | null {
 
   try {
     return (
-      BigInt(whole) * BigInt(10) ** BigInt(decimals) + BigInt(paddedFraction || "0")
+      BigInt(whole) * BigInt(10) ** BigInt(decimals) +
+      BigInt(paddedFraction || "0")
     );
   } catch {
     return null;
@@ -92,7 +93,7 @@ function actionLabel(action: ActionType) {
 
 export default function MarketApp() {
   const { connection } = useConnection();
-  const { connected } = useWallet();
+  const { connected, publicKey } = useWallet();
   const anchorWallet = useAnchorWallet();
 
   const {
@@ -119,8 +120,11 @@ export default function MarketApp() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
-  const [currentSlot, setCurrentSlot] = useState<bigint | null>(null);
+  const [faucetLoading, setFaucetLoading] = useState(false);
+  const [faucetError, setFaucetError] = useState<string | null>(null);
+  const [faucetSuccess, setFaucetSuccess] = useState<string | null>(null);
 
+  const [currentSlot, setCurrentSlot] = useState<bigint | null>(null);
   useEffect(() => {
     let cancelled = false;
 
@@ -169,7 +173,8 @@ export default function MarketApp() {
     }
 
     return (
-      (position.collateralAmount * market.collateralPriceUsdc) / BigInt(1_000_000_000)
+      (position.collateralAmount * market.collateralPriceUsdc) /
+      BigInt(1_000_000_000)
     );
   }, [market, position]);
 
@@ -261,6 +266,61 @@ export default function MarketApp() {
       case "withdraw":
         setAmount("1");
         break;
+    }
+  }
+
+  async function requestDemoTokens() {
+    if (!publicKey) {
+      setFaucetError("Connect your wallet first.");
+      return;
+    }
+
+    try {
+      setFaucetLoading(true);
+      setFaucetError(null);
+      setFaucetSuccess(null);
+
+      const response = await fetch("/api/faucet", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          wallet: publicKey.toBase58(),
+        }),
+      });
+
+      const result = (await response.json()) as {
+        success?: boolean;
+        anthTopUp?: string;
+        usdcTopUp?: string;
+        alreadyFunded?: boolean;
+        error?: string;
+      };
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error ?? "Could not provision demo tokens.");
+      }
+
+      if (result.alreadyFunded) {
+        setFaucetSuccess(
+          "Your wallet already has the required test-token allocation."
+        );
+      } else {
+        setFaucetSuccess(
+          "Test tokens added successfully. Your wallet is ready to use Osprey."
+        );
+      }
+    } catch (error) {
+      console.warn("Test faucet failed:", error);
+
+      setFaucetError(
+        error instanceof Error
+          ? error.message
+          : "Could not provision demo tokens."
+      );
+    } finally {
+      setFaucetLoading(false);
     }
   }
 
@@ -403,23 +463,51 @@ export default function MarketApp() {
               <OspreyLogo size={34} />
             </div>
 
-            <p className={styles.topbarEyebrow}>
-              TOKENIZED EQUITY CREDIT
-            </p>
+            <p className={styles.topbarEyebrow}>TOKENIZED EQUITY CREDIT</p>
           </div>
 
-          <WalletMultiButton />
+          <div className={styles.walletActions}>
+            {connected && (
+              <button
+                type="button"
+                className={styles.faucetButton}
+                onClick={requestDemoTokens}
+                disabled={faucetLoading}
+              >
+                {faucetLoading ? "Funding…" : "Get Test Tokens"}
+              </button>
+            )}
+
+            <WalletMultiButton />
+          </div>
         </header>
 
         <div className={styles.content}>
+          {faucetSuccess && (
+            <div
+              role="status"
+              className={`${styles.notice} ${styles.noticeSuccess}`}
+            >
+              {faucetSuccess}
+            </div>
+          )}
+
+          {faucetError && (
+            <div
+              role="alert"
+              className={`${styles.notice} ${styles.noticeError}`}
+            >
+              <strong>Demo funding failed.</strong> {faucetError}
+            </div>
+          )}
           <section id="overview" className={styles.overviewHeader}>
             <div>
               <p className={styles.eyebrow}>OVERVIEW</p>
               <h1>Portfolio Overview</h1>
 
               <p>
-                Manage tokenized equity collateral and stablecoin credit
-                against Osprey&apos;s liquidity-aware borrowing limits.
+                Manage tokenized equity collateral and stablecoin credit against
+                Osprey&apos;s liquidity-aware borrowing limits.
               </p>
             </div>
 
@@ -503,9 +591,7 @@ export default function MarketApp() {
 
                         <span
                           className={
-                            snapshotFresh
-                              ? styles.liveBadge
-                              : styles.staleBadge
+                            snapshotFresh ? styles.liveBadge : styles.staleBadge
                           }
                         >
                           ● {snapshotFresh ? "LIVE" : "STALE"}
@@ -520,9 +606,7 @@ export default function MarketApp() {
 
                   <div className={styles.marketPrice}>
                     <span>MARKET PRICE</span>
-                    <strong>
-                      ${usdc(market.collateralPriceUsdc)}
-                    </strong>
+                    <strong>${usdc(market.collateralPriceUsdc)}</strong>
                     <small>per ANTH</small>
                   </div>
                 </div>
@@ -556,9 +640,7 @@ export default function MarketApp() {
 
                   <article>
                     <span>ISSUER CEILING</span>
-                    <strong>
-                      {percent(market.issuerRiskCeilingBps)}
-                    </strong>
+                    <strong>{percent(market.issuerRiskCeilingBps)}</strong>
                     <small>Asset-level risk ceiling</small>
                   </article>
                 </div>
@@ -587,9 +669,7 @@ export default function MarketApp() {
 
                   <div>
                     <span>ISSUER CEILING</span>
-                    <strong>
-                      {percent(market.issuerRiskCeilingBps)}
-                    </strong>
+                    <strong>{percent(market.issuerRiskCeilingBps)}</strong>
                   </div>
 
                   <b>→</b>
@@ -615,15 +695,15 @@ export default function MarketApp() {
                           debtUsageBps >= 9000
                             ? styles.healthDanger
                             : debtUsageBps >= 7500
-                              ? styles.healthWarning
-                              : ""
+                            ? styles.healthWarning
+                            : ""
                         }`}
                       >
                         {debtUsageBps >= 9000
                           ? "High utilization"
                           : debtUsageBps >= 7500
-                            ? "Watch position"
-                            : "Healthy"}
+                          ? "Watch position"
+                          : "Healthy"}
                       </span>
                     )}
                   </div>
@@ -720,9 +800,7 @@ export default function MarketApp() {
               <section className={styles.managementPanel}>
                 <div className={styles.managementHeader}>
                   <div>
-                    <p className={styles.cardLabel}>
-                      POSITION MANAGEMENT
-                    </p>
+                    <p className={styles.cardLabel}>POSITION MANAGEMENT</p>
 
                     <h2>Manage collateral and debt</h2>
                   </div>
@@ -734,20 +812,13 @@ export default function MarketApp() {
 
                 <div className={styles.actionTabs}>
                   {(
-                    [
-                      "deposit",
-                      "borrow",
-                      "repay",
-                      "withdraw",
-                    ] as ActionType[]
+                    ["deposit", "borrow", "repay", "withdraw"] as ActionType[]
                   ).map((item) => (
                     <button
                       key={item}
                       type="button"
                       className={`${styles.actionTab} ${
-                        selectedAction === item
-                          ? styles.actionTabActive
-                          : ""
+                        selectedAction === item ? styles.actionTabActive : ""
                       }`}
                       onClick={() => chooseAction(item)}
                       disabled={!!action}
@@ -821,8 +892,8 @@ export default function MarketApp() {
 
                 {!snapshotFresh && connected && (
                   <div className={styles.staleNotice}>
-                    Liquidity risk data is stale. Borrow and Withdraw require a fresh
-                    on-chain liquidity snapshot. Deposit and Repay remain
+                    Liquidity risk data is stale. Borrow and Withdraw require a
+                    fresh on-chain liquidity snapshot. Deposit and Repay remain
                     available because they do not increase position risk.
                   </div>
                 )}
@@ -850,8 +921,7 @@ export default function MarketApp() {
                     role="alert"
                     className={`${styles.notice} ${styles.noticeError}`}
                   >
-                    <strong>Transaction not completed.</strong>{" "}
-                    {actionError}
+                    <strong>Transaction not completed.</strong> {actionError}
                   </div>
                 )}
               </section>
@@ -867,9 +937,7 @@ export default function MarketApp() {
                   </p>
                 </div>
 
-                <Link href="/risk">
-                  Inspect Risk Engine →
-                </Link>
+                <Link href="/risk">Inspect Risk Engine →</Link>
               </section>
 
               <footer className={styles.footer}>
